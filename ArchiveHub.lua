@@ -3,7 +3,7 @@ local RunService = game:GetService("RunService")
 
 local AutoLockHead = {}
 
-local LOCK_RANGE = 100 -- Maximum distance to lock onto a target
+local LOCK_RANGE = 10000 -- Maximum distance to lock onto a target
 local LOCK_ANGLE = math.rad(45) -- Maximum angle to consider a target (in radians)
 
 function AutoLockHead.new(player)
@@ -59,11 +59,8 @@ function AutoLockHead:findClosestEnemy()
                 local angle = math.acos(lookVector:Dot(toEnemy))
 
                 if angle <= LOCK_ANGLE then
-                    -- Check if the enemy is on a different team
-                    if otherPlayer.Team ~= self.player.Team then
-                        closestDistance = distance
-                        closestEnemy = otherPlayer.Character
-                    end
+                    closestDistance = distance
+                    closestEnemy = otherPlayer.Character
                 end
             end
         end
