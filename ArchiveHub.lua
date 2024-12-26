@@ -2,12 +2,12 @@
 local player = game.Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 local humanoid = character:WaitForChild("Humanoid")
-local mouse = player:GetMouse()
+local camera = game.Workspace.CurrentCamera
 
 local autolockSkillEnabled = true
 local lockedTarget = nil
 local lockRadius = 50 -- How close the enemy needs to be to get locked on
-local camera = game.Workspace.CurrentCamera
+local cameraOffset = Vector3.new(0, 2, -10) -- Adjust camera's angle and distance from the target
 
 -- Function to lock the camera onto an enemy's head
 local function lockCameraOntoEnemy(enemy)
@@ -58,10 +58,9 @@ game:GetService("RunService").Heartbeat:Connect(function()
         -- Lock the camera to focus on the locked target's head
         local targetPosition = lockedTarget.Position
         -- Set the camera to a fixed distance from the target, you can adjust the vector for better positioning
-        local cameraOffset = Vector3.new(0, 2, -10) -- Adjust this to control camera's angle and distance from the target
         camera.CFrame = CFrame.new(targetPosition + cameraOffset, targetPosition) -- Lock camera to enemy's head
     else
-        -- Continuously search for enemies within the lockRadius if the skill is not locked
+        -- Continuously search for enemies within the lockRadius
         searchForNearestEnemy()
     end
 end)
