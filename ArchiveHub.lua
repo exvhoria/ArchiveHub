@@ -15,6 +15,7 @@ function AutoLockHead.new(player)
     self.camera = workspace.CurrentCamera
     self.currentTarget = nil
     self.isLocking = false
+    self.team = player.Team
 
     return self
 end
@@ -33,7 +34,7 @@ function AutoLockHead:updateLock()
     if not self.isLocking then return end
 
     local closestEnemy = self:findClosestEnemy()
-    if closestEnemy then
+    if closestEnemy and closestEnemy.Team ~= self.team then
         self.currentTarget = closestEnemy.Head
         self:lookAtTarget()
     else
@@ -49,7 +50,7 @@ function AutoLockHead:findClosestEnemy()
     local closestEnemy = nil
 
     for _, otherPlayer in pairs(Players:GetPlayers()) do
-        if otherPlayer ~= self.player and otherPlayer.Character and otherPlayer.Character:FindFirstChild("Head") then
+        if otherPlayer ~= self.player and otherPlayer.Character and otherPlayer.Character:FindFirstChild("Head") and otherPlayer.Team ~= self.team then
             local enemyHead = otherPlayer.Character.Head
             local distance = (enemyHead.Position - self.rootPart.Position).Magnitude
 
