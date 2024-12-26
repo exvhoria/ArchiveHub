@@ -5,27 +5,29 @@ local RunService = game:GetService("RunService")
 local sightRange = 100  -- Max range Clark can detect enemies
 local refreshRate = 0.1 -- Frequency of enemy updates (in seconds)
 
--- Function to create or update a highlight effect for the entire body
-local function createOrUpdateHighlight(character)
-    -- Check if the character already has a highlight
-    local highlight = character:FindFirstChild("ClarkHighlight")
-
-    if not highlight then
-        -- Create a new highlight if one doesn't exist
-        highlight = Instance.new("Highlight")
-        highlight.Name = "ClarkHighlight"
-        highlight.Adornee = character
-        highlight.Parent = character
+-- Function to create or update a highlight for each part of the character
+local function createFullCoverageHighlight(character)
+    -- Remove any existing highlights to avoid duplicates
+    for _, child in ipairs(character:GetChildren()) do
+        if child:IsA("SelectionBox") and child.Name == "ClarkHighlight" then
+            child:Destroy()
+        end
     end
 
-    -- Set the highlight color to orange
-    highlight.FillColor = Color3.fromRGB(255, 165, 0) -- Orange fill color
-    highlight.OutlineColor = Color3.fromRGB(255, 85, 0) -- Darker orange outline
-    highlight.OutlineTransparency = 0 -- Fully visible outline
-    highlight.FillTransparency = 0.3 -- Slight transparency for fill
+    -- Add highlights to each part
+    for _, part in ipairs(character:GetDescendants()) do
+        if part:IsA("BasePart") then
+            local selectionBox = Instance.new("SelectionBox")
+            selectionBox.Name = "ClarkHighlight"
+            selectionBox.Adornee = part
+            selectionBox.LineThickness = 0.1
+            selectionBox.Color3 = Color3.fromRGB(255, 165, 0) -- Orange color
+            selectionBox.Parent = character
+        end
+    end
 end
 
--- Function to update enemy highlights
+-- Function to update highlights for enemies
 local function updateEnemyHighlights(clark)
     local clarkPosition = clark.HumanoidRootPart.Position
 
@@ -36,16 +38,17 @@ local function updateEnemyHighlights(clark)
             local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
 
             if humanoidRootPart then
-                -- Check if the player is within range
+                -- Check if within sight range
                 local distance = (humanoidRootPart.Position - clarkPosition).Magnitude
                 if distance <= sightRange then
-                    -- Add or update the highlight
-                    createOrUpdateHighlight(character)
+                    -- Add or update highlights for this character
+                    createFullCoverageHighlight(character)
                 else
-                    -- Remove the highlight if out of range
-                    local highlight = character:FindFirstChild("ClarkHighlight")
-                    if highlight then
-                        highlight:Destroy()
+                    -- Remove highlights if out of range
+                    for _, child in ipairs(character:GetChildren()) do
+                        if child:IsA("SelectionBox") and child.Name == "ClarkHighlight" then
+                            child:Destroy()
+                        end
                     end
                 end
             end
