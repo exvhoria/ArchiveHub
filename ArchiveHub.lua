@@ -3,7 +3,7 @@ local RunService = game:GetService("RunService")
 
 local AutoLockHead = {}
 
-local LOCK_RANGE = 100000 -- Maximum distance to lock onto a target
+local LOCK_RANGE = 100 -- Maximum distance to lock onto a target
 local LOCK_ANGLE = math.rad(45) -- Maximum angle to consider a target (in radians)
 
 function AutoLockHead.new(player)
@@ -92,4 +92,4 @@ end
 
 initializeAutoLockForLocalPlayer()
 
-return AutoLockHead 
+return AutoLockHead
