@@ -4,28 +4,8 @@ local character = player.Character or player.CharacterAdded:Wait()
 local humanoid = character:WaitForChild("Humanoid")
 local camera = game.Workspace.CurrentCamera
 
-local autolockSkillEnabled = true
-local lockedTarget = nil
 local lockRadius = 50 -- How close the enemy needs to be to get locked on
-local cameraOffset = Vector3.new(0, 2, -10) -- Adjust camera's angle and distance from the target
-
--- Function to lock the camera onto an enemy's head
-local function lockCameraOntoEnemy(enemy)
-    -- Check if the enemy has a head (you could check for other parts as well)
-    local head = enemy:FindFirstChild("Head")
-    if head then
-        lockedTarget = head
-        autolockSkillEnabled = true
-        print("Camera locked onto " .. enemy.Name)
-    end
-end
-
--- Function to disable auto-lock
-local function disableAutoLock()
-    autolockSkillEnabled = false
-    lockedTarget = nil
-    print("Camera auto-lock disabled.")
-end
+local cameraOffset = Vector3.new(0, 2, -10) -- Camera offset to get a better view of the enemy's head
 
 -- Function to search for the nearest enemy
 local function searchForNearestEnemy()
@@ -45,22 +25,23 @@ local function searchForNearestEnemy()
         end
     end
 
-    if nearestEnemy then
-        lockCameraOntoEnemy(nearestEnemy)
-    else
-        disableAutoLock()
+    return nearestEnemy
+end
+
+-- Function to lock the camera onto an enemy's head
+local function lockCameraToEnemy(enemy)
+    local head = enemy:FindFirstChild("Head")
+    if head then
+        local targetPosition = head.Position
+        -- Set the camera to focus on the enemy's head, adjusting the offset
+        camera.CFrame = CFrame.new(targetPosition + cameraOffset, targetPosition) -- Lock camera to enemy's head
     end
 end
 
--- Continuously check and lock the camera onto the nearest enemy's head
+-- Continuously search for the nearest enemy and lock camera to their head
 game:GetService("RunService").Heartbeat:Connect(function()
-    if autolockSkillEnabled and lockedTarget then
-        -- Lock the camera to focus on the locked target's head
-        local targetPosition = lockedTarget.Position
-        -- Set the camera to a fixed distance from the target, you can adjust the vector for better positioning
-        camera.CFrame = CFrame.new(targetPosition + cameraOffset, targetPosition) -- Lock camera to enemy's head
-    else
-        -- Continuously search for enemies within the lockRadius
-        searchForNearestEnemy()
+    local nearestEnemy = searchForNearestEnemy()
+    if nearestEnemy then
+        lockCameraToEnemy(nearestEnemy)
     end
 end)
