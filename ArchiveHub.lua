@@ -90,4 +90,3 @@ end
 initializeAutoLockForLocalPlayer()
 
 return AutoLockHead
-print("ArchiveHub Special ID: V1.0")
