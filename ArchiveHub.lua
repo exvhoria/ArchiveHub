@@ -76,4 +76,17 @@ function AutoLockHead:lookAtTarget()
     end
 end
 
+-- Initialize the auto-lock for the local player
+local function initializeAutoLockForLocalPlayer()
+    local localPlayer = Players.LocalPlayer
+    if localPlayer then
+        local autoLock = AutoLockHead.new(localPlayer)
+        autoLock:startLocking()
+    else
+        warn("Local player not found.")
+    end
+end
+
+initializeAutoLockForLocalPlayer()
+
 return AutoLockHead
