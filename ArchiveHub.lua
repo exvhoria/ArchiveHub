@@ -10,7 +10,7 @@ local refreshRate = 0.1 -- Frequency of enemy updates (in seconds)
 local function createFullBodyHighlight(character)
     if not character:FindFirstChild("ClarkHighlight") then
         local highlight = Instance.new("Highlight")
-        highlight.FillColor = Color3.fromRGB(255, 0, 0) -- Red highlight color
+        highlight.FillColor = Color3.fromRGB(0, 0, 0) -- Red highlight color
         highlight.OutlineColor = Color3.fromRGB(255, 255, 255) -- White outline
         highlight.OutlineTransparency = 0.5
         highlight.Adornee = character
