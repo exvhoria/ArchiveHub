@@ -1,44 +1,51 @@
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
-local CollectionService = game:GetService("CollectionService")
 
 -- Clark's Settings
 local sightRange = 100  -- Max range Clark can detect enemies
 local refreshRate = 0.1 -- Frequency of enemy updates (in seconds)
 
--- Function to create a highlight effect for the entire body
-local function createFullBodyHighlight(character)
-    if not character:FindFirstChild("ClarkHighlight") then
-        local highlight = Instance.new("Highlight")
-        highlight.FillColor = Color3.fromRGB(0, 0, 0) -- Red highlight color
-        highlight.OutlineColor = Color3.fromRGB(255, 255, 255) -- White outline
-        highlight.OutlineTransparency = 0.5
-        highlight.Adornee = character
+-- Function to create or update a highlight effect for the entire body
+local function createOrUpdateHighlight(character)
+    -- Check if the character already has a highlight
+    local highlight = character:FindFirstChild("ClarkHighlight")
+
+    if not highlight then
+        -- Create a new highlight if one doesn't exist
+        highlight = Instance.new("Highlight")
         highlight.Name = "ClarkHighlight"
+        highlight.Adornee = character
         highlight.Parent = character
     end
+
+    -- Set the highlight color to orange
+    highlight.FillColor = Color3.fromRGB(255, 165, 0) -- Orange fill color
+    highlight.OutlineColor = Color3.fromRGB(255, 85, 0) -- Darker orange outline
+    highlight.OutlineTransparency = 0 -- Fully visible outline
+    highlight.FillTransparency = 0.3 -- Slight transparency for fill
 end
 
--- Function to check visibility and highlight enemies
+-- Function to update enemy highlights
 local function updateEnemyHighlights(clark)
     local clarkPosition = clark.HumanoidRootPart.Position
 
-    -- Go through all players
+    -- Iterate through all players
     for _, player in pairs(Players:GetPlayers()) do
         if player ~= Players.LocalPlayer and player.Character then
             local character = player.Character
             local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
 
             if humanoidRootPart then
-                -- Check if within sight range
+                -- Check if the player is within range
                 local distance = (humanoidRootPart.Position - clarkPosition).Magnitude
                 if distance <= sightRange then
-                    -- Create or update the highlight effect
-                    createFullBodyHighlight(character)
+                    -- Add or update the highlight
+                    createOrUpdateHighlight(character)
                 else
-                    -- Remove the highlight if the target is out of range
-                    if character:FindFirstChild("ClarkHighlight") then
-                        character.ClarkHighlight:Destroy()
+                    -- Remove the highlight if out of range
+                    local highlight = character:FindFirstChild("ClarkHighlight")
+                    if highlight then
+                        highlight:Destroy()
                     end
                 end
             end
@@ -46,34 +53,32 @@ local function updateEnemyHighlights(clark)
     end
 end
 
--- Function to continuously refresh highlights
+-- Function to refresh highlights continuously
 local function refreshHighlights()
     local clark = Players.LocalPlayer.Character
     if not clark then return end
 
-    -- Start continuous enemy tracking
     while true do
         updateEnemyHighlights(clark)
         wait(refreshRate)
     end
 end
 
--- Execute the highlight script (triggered by the UI or script execution)
+-- Activate the passive skill
 local function activateThroughWalls()
     -- Listen for new players joining
     Players.PlayerAdded:Connect(function(player)
         player.CharacterAdded:Connect(function()
             local clark = Players.LocalPlayer.Character
             if clark then
-                -- Ensure highlights are updated for new players
                 updateEnemyHighlights(clark)
             end
         end)
     end)
 
-    -- Start highlighting enemies
+    -- Start the refresh loop
     refreshHighlights()
 end
 
--- Run the function to activate the passive ability
+-- Run the passive skill script
 activateThroughWalls()
