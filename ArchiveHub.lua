@@ -1,54 +1,77 @@
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
-
--- Clark's Settings
+local UserInputService = game:GetService("UserInputService")
 local sightRange = 100  -- Max range Clark can detect enemies
 local refreshRate = 0.1 -- Frequency of enemy updates (in seconds)
 
--- Function to create or update a highlight for each part of the character
-local function createFullCoverageHighlight(character)
-    -- Remove any existing highlights to avoid duplicates
-    for _, child in ipairs(character:GetChildren()) do
-        if child:IsA("SelectionBox") and child.Name == "ClarkHighlight" then
-            child:Destroy()
-        end
+-- UI setup
+local screenGui = Instance.new("ScreenGui")
+local toggleFrame = Instance.new("Frame")
+local highlightToggle = Instance.new("TextButton")
+local autoLockToggle = Instance.new("TextButton")
+
+screenGui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
+screenGui.Name = "ClarkSkillUI"
+
+toggleFrame.Parent = screenGui
+toggleFrame.Size = UDim2.new(0, 200, 0, 100)
+toggleFrame.Position = UDim2.new(0.5, -100, 0.8, 0)
+toggleFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+toggleFrame.BorderSizePixel = 2
+toggleFrame.BorderColor3 = Color3.new(1, 1, 1)
+
+highlightToggle.Parent = toggleFrame
+highlightToggle.Size = UDim2.new(1, 0, 0.5, 0)
+highlightToggle.Position = UDim2.new(0, 0, 0, 0)
+highlightToggle.BackgroundColor3 = Color3.fromRGB(255, 165, 0)
+highlightToggle.TextColor3 = Color3.new(0, 0, 0)
+highlightToggle.Text = "Toggle Highlight: OFF"
+
+autoLockToggle.Parent = toggleFrame
+autoLockToggle.Size = UDim2.new(1, 0, 0.5, 0)
+autoLockToggle.Position = UDim2.new(0, 0, 0.5, 0)
+autoLockToggle.BackgroundColor3 = Color3.fromRGB(255, 85, 0)
+autoLockToggle.TextColor3 = Color3.new(0, 0, 0)
+autoLockToggle.Text = "Toggle Auto-Lock: OFF"
+
+-- Flags for toggling functionalities
+local highlightEnabled = false
+local autoLockEnabled = false
+
+-- Highlight function
+local function createOrUpdateHighlight(character)
+    local highlight = character:FindFirstChild("ClarkHighlight")
+    if not highlight then
+        highlight = Instance.new("Highlight")
+        highlight.Name = "ClarkHighlight"
+        highlight.Adornee = character
+        highlight.Parent = character
     end
 
-    -- Add highlights to each part
-    for _, part in ipairs(character:GetDescendants()) do
-        if part:IsA("BasePart") then
-            local selectionBox = Instance.new("SelectionBox")
-            selectionBox.Name = "ClarkHighlight"
-            selectionBox.Adornee = part
-            selectionBox.LineThickness = 0.1
-            selectionBox.Color3 = Color3.fromRGB(255, 165, 0) -- Orange color
-            selectionBox.Parent = character
-        end
-    end
+    highlight.FillColor = Color3.fromRGB(255, 165, 0) -- Orange
+    highlight.OutlineColor = Color3.fromRGB(255, 85, 0)
+    highlight.OutlineTransparency = 0
+    highlight.FillTransparency = 0.3
 end
 
--- Function to update highlights for enemies
+-- Update highlights
 local function updateEnemyHighlights(clark)
+    if not highlightEnabled then return end
     local clarkPosition = clark.HumanoidRootPart.Position
 
-    -- Iterate through all players
     for _, player in pairs(Players:GetPlayers()) do
         if player ~= Players.LocalPlayer and player.Character then
             local character = player.Character
             local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
 
             if humanoidRootPart then
-                -- Check if within sight range
                 local distance = (humanoidRootPart.Position - clarkPosition).Magnitude
                 if distance <= sightRange then
-                    -- Add or update highlights for this character
-                    createFullCoverageHighlight(character)
+                    createOrUpdateHighlight(character)
                 else
-                    -- Remove highlights if out of range
-                    for _, child in ipairs(character:GetChildren()) do
-                        if child:IsA("SelectionBox") and child.Name == "ClarkHighlight" then
-                            child:Destroy()
-                        end
+                    local highlight = character:FindFirstChild("ClarkHighlight")
+                    if highlight then
+                        highlight:Destroy()
                     end
                 end
             end
@@ -56,32 +79,57 @@ local function updateEnemyHighlights(clark)
     end
 end
 
--- Function to refresh highlights continuously
-local function refreshHighlights()
+-- Auto-lock function
+local function autoLockOnClosestEnemy(clark)
+    if not autoLockEnabled then return end
+    local closestEnemy = nil
+    local closestDistance = math.huge
+
+    local clarkPosition = clark.HumanoidRootPart.Position
+
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= Players.LocalPlayer and player.Character then
+            local character = player.Character
+            local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+
+            if humanoidRootPart then
+                local distance = (humanoidRootPart.Position - clarkPosition).Magnitude
+                if distance <= sightRange and distance < closestDistance then
+                    closestEnemy = humanoidRootPart
+                    closestDistance = distance
+                end
+            end
+        end
+    end
+
+    -- Lock on to the closest enemy's head
+    if closestEnemy then
+        clark.Humanoid:MoveTo(closestEnemy.Position)
+    end
+end
+
+-- Refresh loop for highlights and auto-lock
+local function refreshSkills()
     local clark = Players.LocalPlayer.Character
     if not clark then return end
 
     while true do
         updateEnemyHighlights(clark)
+        autoLockOnClosestEnemy(clark)
         wait(refreshRate)
     end
 end
 
--- Activate the passive skill
-local function activateThroughWalls()
-    -- Listen for new players joining
-    Players.PlayerAdded:Connect(function(player)
-        player.CharacterAdded:Connect(function()
-            local clark = Players.LocalPlayer.Character
-            if clark then
-                updateEnemyHighlights(clark)
-            end
-        end)
-    end)
+-- Activate skills with UI toggle
+highlightToggle.MouseButton1Click:Connect(function()
+    highlightEnabled = not highlightEnabled
+    highlightToggle.Text = "Toggle Highlight: " .. (highlightEnabled and "ON" or "OFF")
+end)
 
-    -- Start the refresh loop
-    refreshHighlights()
-end
+autoLockToggle.MouseButton1Click:Connect(function()
+    autoLockEnabled = not autoLockEnabled
+    autoLockToggle.Text = "Toggle Auto-Lock: " .. (autoLockEnabled and "ON" or "OFF")
+end)
 
--- Run the passive skill script
-activateThroughWalls()
+-- Start the script
+refreshSkills()
