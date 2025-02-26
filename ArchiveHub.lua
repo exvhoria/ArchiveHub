@@ -1,5 +1,9 @@
 local player = game.Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
+local camera = workspace.CurrentCamera
+local runService = game:GetService("RunService")
+
+local currentTarget = nil
 
 local function getNearestEnemy()
     local closestEnemy = nil
@@ -8,7 +12,9 @@ local function getNearestEnemy()
     for _, otherPlayer in pairs(game.Players:GetPlayers()) do
         if otherPlayer ~= player and otherPlayer.Team ~= player.Team then
             local enemyChar = otherPlayer.Character
-            if enemyChar and enemyChar:FindFirstChild("Head") and enemyChar:FindFirstChild("HumanoidRootPart") then
+            local humanoid = enemyChar and enemyChar:FindFirstChildOfClass("Humanoid")
+
+            if humanoid and humanoid.Health > 0 and enemyChar:FindFirstChild("Head") and enemyChar:FindFirstChild("HumanoidRootPart") then
                 local distance = (character.HumanoidRootPart.Position - enemyChar.HumanoidRootPart.Position).Magnitude
                 if distance < shortestDistance then
                     shortestDistance = distance
@@ -17,37 +23,33 @@ local function getNearestEnemy()
             end
         end
     end
-    
+
     return closestEnemy
 end
 
-local function executeUltimate()
-    local enemy = getNearestEnemy()
-    if enemy and enemy:FindFirstChild("Head") then
-        local targetPosition = enemy.Head.Position
+local function lockOnEnemy()
+    runService.RenderStepped:Connect(function()
+        -- If the current target is dead or missing, find a new one
+        if not currentTarget or not currentTarget:FindFirstChildOfClass("Humanoid") or currentTarget:FindFirstChildOfClass("Humanoid").Health <= 0 then
+            currentTarget = getNearestEnemy()
+        end
 
-        -- Make Clark face the enemy's head
-        local direction = (targetPosition - character.HumanoidRootPart.Position).unit
-        local newCFrame = CFrame.lookAt(character.HumanoidRootPart.Position, targetPosition)
-        character.HumanoidRootPart.CFrame = newCFrame
+        -- If we found a valid enemy, keep locking onto them
+        if currentTarget and currentTarget:FindFirstChild("Head") then
+            local targetPosition = currentTarget.Head.Position
 
-        -- Simulate an attack (Replace with actual attack logic)
-        print("Clark is using ultimate on", enemy.Name)
+            -- Make Clark face the enemy's head
+            character.HumanoidRootPart.CFrame = CFrame.lookAt(character.HumanoidRootPart.Position, targetPosition)
 
-        -- Example attack effect (Replace with real attack effect)
-        local effect = Instance.new("Part")
-        effect.Size = Vector3.new(1, 1, 1)
-        effect.Color = Color3.fromRGB(255, 0, 0)
-        effect.Material = Enum.Material.Neon
-        effect.Position = targetPosition
-        effect.Anchored = true
-        effect.Parent = workspace
-
-        game:GetService("Debris"):AddItem(effect, 1) -- Remove effect after 1 second
-    else
-        print("No enemy found!")
-    end
+            -- Lock the camera onto the enemy's head
+            camera.CameraType = Enum.CameraType.Scriptable
+            camera.CFrame = CFrame.lookAt(camera.CFrame.Position, targetPosition)
+        else
+            -- If no enemies are found, restore camera control
+            camera.CameraType = Enum.CameraType.Custom
+        end
+    end)
 end
 
--- Run the ultimate attack when the script is executed
-executeUltimate()
+-- Start the infinite enemy lock-on when the script is executed
+lockOnEnemy()
