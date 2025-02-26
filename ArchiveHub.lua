@@ -5,7 +5,7 @@ local runService = game:GetService("RunService")
 
 local currentTarget = nil
 
-print("V6") -- Print when script starts
+print("V7") -- Print when script starts
 
 -- Function to find the nearest enemy
 local function getNearestEnemy()
@@ -30,7 +30,7 @@ local function getNearestEnemy()
     return closestEnemy
 end
 
--- Function to lock Clark’s **upper body** to the enemy’s head
+-- Function to lock Clark onto an enemy’s head while allowing movement
 local function lockOnEnemy()
     runService.RenderStepped:Connect(function()
         -- If the current target is dead or missing, find a new one
@@ -38,29 +38,26 @@ local function lockOnEnemy()
             currentTarget = getNearestEnemy()
         end
 
-        -- If we found a valid enemy, lock onto them
+        -- If we found a valid enemy, keep locking onto them
         if currentTarget and currentTarget:FindFirstChild("Head") then
             local targetPosition = currentTarget.Head.Position
 
-            -- Rotate Clark’s **upper body** (Head & Torso) instead of locking the whole character
-            local head = character:FindFirstChild("Head")
-            local torso = character:FindFirstChild("UpperTorso") or character:FindFirstChild("Torso")
-            
-            if head and torso then
-                local lookVector = (targetPosition - head.Position).unit
-                head.CFrame = CFrame.lookAt(head.Position, targetPosition)
-                torso.CFrame = CFrame.lookAt(torso.Position, targetPosition)
+            -- Make Clark's body smoothly face the enemy's head while allowing movement
+            local rootPart = character:FindFirstChild("HumanoidRootPart")
+            if rootPart then
+                local newCFrame = CFrame.lookAt(rootPart.Position, Vector3.new(targetPosition.X, rootPart.Position.Y, targetPosition.Z))
+                rootPart.CFrame = rootPart.CFrame:Lerp(newCFrame, 0.2) -- Smooth rotation
             end
 
-            -- Keep the camera locked on the enemy's head
+            -- Keep the camera locked onto the enemy's head
             camera.CameraType = Enum.CameraType.Scriptable
             camera.CFrame = CFrame.lookAt(camera.CFrame.Position, targetPosition)
         else
-            -- If no enemies are found, restore normal camera control
+            -- If no enemies are found, restore camera control
             camera.CameraType = Enum.CameraType.Custom
         end
     end)
 end
 
--- Run the ultimate skill
+-- Start locking onto the nearest enemy when script runs
 lockOnEnemy()
