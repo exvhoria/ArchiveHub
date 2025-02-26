@@ -4,8 +4,9 @@ local camera = workspace.CurrentCamera
 local runService = game:GetService("RunService")
 
 local currentTarget = nil
+local humanoid = character:FindFirstChildOfClass("Humanoid")
 
-print("Skill Active") -- Print when script starts
+print("V9") -- Print when script starts
 
 -- Function to find the nearest enemy
 local function getNearestEnemy()
@@ -30,32 +31,34 @@ local function getNearestEnemy()
     return closestEnemy
 end
 
--- Function to lock Clark onto an enemy’s head while allowing movement
+-- Function to smoothly rotate Clark while allowing movement
 local function lockOnEnemy()
     runService.RenderStepped:Connect(function()
-        -- Find a new target if needed
-        if not currentTarget or not currentTarget:FindFirstChildOfClass("Humanoid") or currentTarget:FindFirstChildOfClass("Humanoid").Health <= 0 then
-            currentTarget = getNearestEnemy()
-        end
-
-        -- If we found a valid enemy, keep locking onto them
-        if currentTarget and currentTarget:FindFirstChild("Head") then
-            local targetPosition = currentTarget.Head.Position
-
-            -- Make Clark smoothly rotate toward the enemy's head **without locking movement**
-            local rootPart = character:FindFirstChild("HumanoidRootPart")
-            if rootPart then
-                local direction = (targetPosition - rootPart.Position).unit
-                local newCFrame = CFrame.new(rootPart.Position, rootPart.Position + Vector3.new(direction.X, 0, direction.Z))
-                rootPart.CFrame = rootPart.CFrame:Lerp(newCFrame, 0.2) -- Smooth rotation without freezing movement
+        if humanoid.MoveDirection.Magnitude > 0 then
+            -- Find a new target if needed
+            if not currentTarget or not currentTarget:FindFirstChildOfClass("Humanoid") or currentTarget:FindFirstChildOfClass("Humanoid").Health <= 0 then
+                currentTarget = getNearestEnemy()
             end
 
-            -- Keep the camera locked onto the enemy's head
-            camera.CameraType = Enum.CameraType.Scriptable
-            camera.CFrame = CFrame.lookAt(camera.CFrame.Position, targetPosition)
-        else
-            -- If no enemies are found, restore normal camera control
-            camera.CameraType = Enum.CameraType.Custom
+            -- If we found a valid enemy, keep locking onto them
+            if currentTarget and currentTarget:FindFirstChild("Head") then
+                local targetPosition = currentTarget.Head.Position
+
+                -- Rotate Clark **only when moving**
+                local rootPart = character:FindFirstChild("HumanoidRootPart")
+                if rootPart then
+                    local direction = (targetPosition - rootPart.Position).unit
+                    local newLookVector = Vector3.new(direction.X, 0, direction.Z)
+                    rootPart.CFrame = CFrame.new(rootPart.Position, rootPart.Position + newLookVector)
+                end
+
+                -- Keep the camera locked onto the enemy's head
+                camera.CameraType = Enum.CameraType.Scriptable
+                camera.CFrame = CFrame.lookAt(camera.CFrame.Position, targetPosition)
+            else
+                -- If no enemies are found, restore normal camera control
+                camera.CameraType = Enum.CameraType.Custom
+            end
         end
     end)
 end
