@@ -5,8 +5,9 @@ local runService = game:GetService("RunService")
 
 local currentTarget = nil
 
-print("V4") -- Print when the script starts
+print("V5") -- Print when script starts
 
+-- Function to find the nearest enemy
 local function getNearestEnemy()
     local closestEnemy = nil
     local shortestDistance = math.huge
@@ -29,6 +30,7 @@ local function getNearestEnemy()
     return closestEnemy
 end
 
+-- Function to continuously lock onto an enemy
 local function lockOnEnemy()
     runService.RenderStepped:Connect(function()
         -- If the current target is dead or missing, find a new one
@@ -41,6 +43,7 @@ local function lockOnEnemy()
             local targetPosition = currentTarget.Head.Position
 
             -- Make Clark face the enemy's head
+            local lookVector = (targetPosition - character.HumanoidRootPart.Position).unit
             character.HumanoidRootPart.CFrame = CFrame.lookAt(character.HumanoidRootPart.Position, targetPosition)
 
             -- Lock the camera onto the enemy's head
@@ -53,5 +56,5 @@ local function lockOnEnemy()
     end)
 end
 
--- Run the ultimate skill
+-- Start locking onto the nearest enemy when script runs
 lockOnEnemy()
