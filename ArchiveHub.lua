@@ -5,6 +5,8 @@ local runService = game:GetService("RunService")
 
 local currentTarget = nil
 
+print("V4") -- Print when the script starts
+
 local function getNearestEnemy()
     local closestEnemy = nil
     local shortestDistance = math.huge
@@ -51,5 +53,5 @@ local function lockOnEnemy()
     end)
 end
 
--- Start the infinite enemy lock-on when the script is executed
+-- Run the ultimate skill
 lockOnEnemy()
