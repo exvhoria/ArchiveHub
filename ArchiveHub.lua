@@ -1,67 +1,64 @@
-local player = game.Players.LocalPlayer
-local character = player.Character or player.CharacterAdded:Wait()
-local camera = workspace.CurrentCamera
-local runService = game:GetService("RunService")
 
-local currentTarget = nil
-local humanoid = character:FindFirstChildOfClass("Humanoid")
+--Made by : https://v3rmillion.net/member.php?action=profile&uid=244024
+-- init
+local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/zxciaz/VenyxUI/main/Reuploaded"))() --someone reuploaded it so I put it in place of the original back up so guy can get free credit.
+local venyx = library.new("Venyx", 5013109572)
 
-print("V9") -- Print when script starts
+-- themes
+local themes = {
+Background = Color3.fromRGB(24, 24, 24),
+Glow = Color3.fromRGB(0, 0, 0),
+Accent = Color3.fromRGB(10, 10, 10),
+LightContrast = Color3.fromRGB(20, 20, 20),
+DarkContrast = Color3.fromRGB(14, 14, 14),  
+TextColor = Color3.fromRGB(255, 255, 255)
+}
 
--- Function to find the nearest enemy
-local function getNearestEnemy()
-    local closestEnemy = nil
-    local shortestDistance = math.huge
+-- first page
+local page = venyx:addPage("Test", 5012544693)
+local section1 = page:addSection("Section 1")
+local section2 = page:addSection("Section 2")
 
-    for _, otherPlayer in pairs(game.Players:GetPlayers()) do
-        if otherPlayer ~= player and otherPlayer.Team ~= player.Team then
-            local enemyChar = otherPlayer.Character
-            local humanoid = enemyChar and enemyChar:FindFirstChildOfClass("Humanoid")
+section1:addToggle("Toggle", nil, function(value)
+print("Toggled", value)
+end)
+section1:addButton("Button", function()
+print("Clicked")
+end)
+section1:addTextbox("Notification", "Default", function(value, focusLost)
+print("Input", value)
 
-            if humanoid and humanoid.Health > 0 and enemyChar:FindFirstChild("Head") and enemyChar:FindFirstChild("HumanoidRootPart") then
-                local distance = (character.HumanoidRootPart.Position - enemyChar.HumanoidRootPart.Position).Magnitude
-                if distance < shortestDistance then
-                    shortestDistance = distance
-                    closestEnemy = enemyChar
-                end
-            end
-        end
-    end
+if focusLost then
+venyx:Notify("Title", value)
+end
+end)
 
-    return closestEnemy
+section2:addKeybind("Toggle Keybind", Enum.KeyCode.One, function()
+print("Activated Keybind")
+venyx:toggle()
+end, function()
+print("Changed Keybind")
+end)
+section2:addColorPicker("ColorPicker", Color3.fromRGB(50, 50, 50))
+section2:addColorPicker("ColorPicker2")
+section2:addSlider("Slider", 0, -100, 100, function(value)
+print("Dragged", value)
+end)
+section2:addDropdown("Dropdown", {"Hello", "World", "Hello World", "Word", 1, 2, 3})
+section2:addDropdown("Dropdown", {"Hello", "World", "Hello World", "Word", 1, 2, 3}, function(text)
+   print("Selected", text)
+end)
+section2:addButton("Button")
+
+-- second page
+local theme = venyx:addPage("Theme", 5012544693)
+local colors = theme:addSection("Colors")
+
+for theme, color in pairs(themes) do -- all in one theme changer, i know, im cool
+colors:addColorPicker(theme, color, function(color3)
+venyx:setTheme(theme, color3)
+end)
 end
 
--- Function to smoothly rotate Clark while allowing movement
-local function lockOnEnemy()
-    runService.RenderStepped:Connect(function()
-        if humanoid.MoveDirection.Magnitude > 0 then
-            -- Find a new target if needed
-            if not currentTarget or not currentTarget:FindFirstChildOfClass("Humanoid") or currentTarget:FindFirstChildOfClass("Humanoid").Health <= 0 then
-                currentTarget = getNearestEnemy()
-            end
-
-            -- If we found a valid enemy, keep locking onto them
-            if currentTarget and currentTarget:FindFirstChild("Head") then
-                local targetPosition = currentTarget.Head.Position
-
-                -- Rotate Clark **only when moving**
-                local rootPart = character:FindFirstChild("HumanoidRootPart")
-                if rootPart then
-                    local direction = (targetPosition - rootPart.Position).unit
-                    local newLookVector = Vector3.new(direction.X, 0, direction.Z)
-                    rootPart.CFrame = CFrame.new(rootPart.Position, rootPart.Position + newLookVector)
-                end
-
-                -- Keep the camera locked onto the enemy's head
-                camera.CameraType = Enum.CameraType.Scriptable
-                camera.CFrame = CFrame.lookAt(camera.CFrame.Position, targetPosition)
-            else
-                -- If no enemies are found, restore normal camera control
-                camera.CameraType = Enum.CameraType.Custom
-            end
-        end
-    end)
-end
-
--- Start the lock-on function
-lockOnEnemy()
+-- load
+venyx:SelectPage(venyx.pages[1], true) -- no default for more freedo
