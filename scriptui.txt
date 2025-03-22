@@ -112,7 +112,7 @@ local BackgroundImage = Instance.new("ImageLabel")
 BackgroundImage.Parent = Main
 BackgroundImage.Size = UDim2.new(1, 0, 1, 0) -- Fullscreen
 BackgroundImage.Position = UDim2.new(0, 0, 0, 0)
-BackgroundImage.Image = "rbxassetid://75885136374836" -- Change this
+BackgroundImage.Image = "rbxassetid://116020126530334" -- Change this
 BackgroundImage.BackgroundTransparency = 1
 BackgroundImage.ZIndex = -1 -- Keeps it behind everything
 
