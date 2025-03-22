@@ -105,6 +105,54 @@ function lib:Window(text, preset, closebind)
     Main.Size = UDim2.new(0, 0, 0, 0)
     Main.ClipsDescendants = true
     Main.Visible = true
+-- ++++++++++++++++++++++++++++++++++++++++++++++++
+    local ToggleButton = Instance.new("ImageButton")
+    ToggleButton.Parent = ui
+    ToggleButton.BackgroundTransparency = 1
+    ToggleButton.Size = UDim2.new(0, 50, 0, 50)
+    ToggleButton.Position = UDim2.new(0.05, 0, 0.85, 0) -- Bottom left corner
+    ToggleButton.Image = "https://raw.githubusercontent.com/exvhoria/ArchiveHub/main/logo.ico"
+    ToggleButton.ZIndex = 999 -- Ensure it's on top
+
+    -- Toggle UI Visibility
+    local uiHidden = false
+    ToggleButton.MouseButton1Click:Connect(function()
+        if uiHidden then
+            Main.Visible = true
+        else
+            Main.Visible = false
+        end
+        uiHidden = not uiHidden
+    end)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-- ++++++++++++++++++++++++++++++++++++++++++++++++
 
     TabHold.Name = "TabHold"
     TabHold.Parent = Main
@@ -135,138 +183,7 @@ function lib:Window(text, preset, closebind)
     DragFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
     DragFrame.BackgroundTransparency = 1.000
     DragFrame.Size = UDim2.new(0, 560, 0, 41)
--- ++++++++++++++++++++++++++++++++++++++++++++++++
-
-
-
-
-
-
-
-       -- Minimize Button
-local MinimizeButton = Instance.new("TextButton")
-MinimizeButton.Parent = DragFrame
-MinimizeButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-MinimizeButton.Position = UDim2.new(0.85, 0, 0.2, 0)
-MinimizeButton.Size = UDim2.new(0, 20, 0, 20)
-MinimizeButton.Font = Enum.Font.GothamBold
-MinimizeButton.Text = "-"
-MinimizeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-MinimizeButton.TextSize = 14
-
--- Close Button
-local CloseButton = Instance.new("TextButton")
-CloseButton.Parent = DragFrame
-CloseButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
-CloseButton.Position = UDim2.new(0.92, 0, 0.2, 0)
-CloseButton.Size = UDim2.new(0, 20, 0, 20)
-CloseButton.Font = Enum.Font.GothamBold
-CloseButton.Text = "X"
-CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-CloseButton.TextSize = 14
-
--- Floating Icon (Minimized UI Button)
-local FloatingIcon = Instance.new("ImageButton")
-FloatingIcon.Parent = ui
-FloatingIcon.BackgroundTransparency = 1
-FloatingIcon.Size = UDim2.new(0, 50, 0, 50) -- Ensure visibility
-FloatingIcon.Position = UDim2.new(0.05, 0, 0.85, 0) -- Bottom left corner
-FloatingIcon.Image = "https://raw.githubusercontent.com/exvhoria/ArchiveHub/main/logo.ico"
-FloatingIcon.Visible = false -- Initially hidden
-FloatingIcon.ZIndex = 999 -- Ensure it appears above everything
-
--- Make Floating Icon Draggable
-local function MakeDraggable(button)
-    local dragging = false
-    local dragInput, dragStart, startPos
-
-    button.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            dragging = true
-            dragStart = input.Position
-            startPos = button.Position
-
-            input.Changed:Connect(function()
-                if input.UserInputState == Enum.UserInputState.End then
-                    dragging = false
-                end
-            end)
-        end
-    end)
-
-    button.InputChanged:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseMovement then
-            dragInput = input
-        end
-    end)
-
-    UserInputService.InputChanged:Connect(function(input)
-        if input == dragInput and dragging then
-            local delta = input.Position - dragStart
-            button.Position = UDim2.new(
-                0,
-                math.clamp(startPos.X.Offset + delta.X, 10, workspace.CurrentCamera.ViewportSize.X - 60),
-                0,
-                math.clamp(startPos.Y.Offset + delta.Y, 10, workspace.CurrentCamera.ViewportSize.Y - 60)
-            )
-        end
-    end)
-end
-MakeDraggable(FloatingIcon)
-
--- Minimize Button (Shrink UI & Show Floating Icon)
-local minimized = false
-MinimizeButton.MouseButton1Click:Connect(function()
-    if not minimized then
-        Main:TweenSize(UDim2.new(0, 200, 0, 40), Enum.EasingDirection.Out, Enum.EasingStyle.Quart, 0.6, true)
-        wait(0.6)
-        Main.Visible = false
-        FloatingIcon.Position = UDim2.new(0.05, 0, 0.85, 0) -- Reset Position
-        FloatingIcon.Visible = true
-    end
-    minimized = true
-end)
-
--- Reopen UI from Floating Icon
-FloatingIcon.MouseButton1Click:Connect(function()
-    FloatingIcon.Visible = false
-    Main.Visible = true
-    Main:TweenSize(UDim2.new(0, 560, 0, 319), Enum.EasingDirection.Out, Enum.EasingStyle.Quart, 0.6, true)
-    minimized = false
-end)
-
--- Close Button Function
-CloseButton.MouseButton1Click:Connect(function()
-    ui:Destroy()
-end)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    
     Main:TweenSize(UDim2.new(0, 560, 0, 319), Enum.EasingDirection.Out, Enum.EasingStyle.Quart, .6, true)
 
     MakeDraggable(DragFrame, Main)
