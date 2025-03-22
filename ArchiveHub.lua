@@ -1,5 +1,4 @@
-local lib = loadstring(game:HttpGet"https://raw.githubusercontent.com/exvhoria/ArchiveHub/main/scriptui.txt")()
--- https://raw.githubusercontent.com/exvhoria/ArchiveHub/main/scriptui.txt
+local lib = loadstring(game:HttpGet("https://raw.githubusercontent.com/exvhoria/ArchiveHub/main/scriptui.txt"))()
 -- Original Maker: https://raw.githubusercontent.com/dawid-scripts/UI-Libs/main/Vape.txt
 
 local win = lib:Window("ArchiveHub || GAME NAME HERE", Color3.fromRGB(44, 120, 224), Enum.KeyCode.RightControl)
@@ -40,22 +39,34 @@ changeclr:Colorpicker("Change UI Color", Color3.fromRGB(44, 120, 224), function(
     lib:ChangePresetColor(Color3.fromRGB(t.R * 255, t.G * 255, t.B * 255))
 end)
 
--- Toggle UI Visibility
-local isUIVisible = true
-local toggleUI = Instance.new("TextButton")
+-- Player Tab
+local playerTab = win:Tab("Player Settings")
 
-toggleUI.Parent = game:GetService("CoreGui") -- Ensure it appears properly
-toggleUI.Size = UDim2.new(0, 150, 0, 30)
-toggleUI.Position = UDim2.new(0.5, -75, 0, 10) -- Centered at top middle
-toggleUI.BackgroundColor3 = Color3.fromRGB(44, 120, 224)
-toggleUI.Text = "Hide UI"
-toggleUI.TextColor3 = Color3.fromRGB(255, 255, 255)
-toggleUI.Font = Enum.Font.SourceSansBold
-toggleUI.TextSize = 18
-toggleUI.Draggable = false -- Prevent dragging
-toggleUI.Active = true
-toggleUI.MouseButton1Click:Connect(function()
-    isUIVisible = not isUIVisible
-    win:Toggle(isUIVisible)
-    toggleUI.Text = isUIVisible and "Hide UI" or "Show UI"
+playerTab:Slider("Walk Speed", 16, 100, 16, function(speed)
+    local player = game.Players.LocalPlayer
+    if player and player.Character and player.Character:FindFirstChild("Humanoid") then
+        player.Character.Humanoid.WalkSpeed = speed
+    end
+end)
+
+playerTab:Slider("Jump Power", 50, 200, 50, function(jumpPower)
+    local player = game.Players.LocalPlayer
+    if player and player.Character and player.Character:FindFirstChild("Humanoid") then
+        player.Character.Humanoid.JumpPower = jumpPower
+    end
+end)
+
+playerTab:Toggle("No Clip (Walk Through Walls)", false, function(enabled)
+    local player = game.Players.LocalPlayer
+    local humanoidRootPart = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+    
+    if enabled then
+        if humanoidRootPart then
+            humanoidRootPart.CanCollide = false
+        end
+    else
+        if humanoidRootPart then
+            humanoidRootPart.CanCollide = true
+        end
+    end
 end)
