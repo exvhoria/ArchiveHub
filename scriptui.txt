@@ -95,6 +95,8 @@ function lib:Window(text, preset, closebind)
     local Title = Instance.new("TextLabel")
     local TabFolder = Instance.new("Folder")
     local DragFrame = Instance.new("Frame")
+    local UIStroke = Instance.new("UIStroke")
+    local UICorner = Instance.new("UICorner")
 
     Main.Name = "Main"
     Main.Parent = ui
@@ -105,6 +107,11 @@ function lib:Window(text, preset, closebind)
     Main.Size = UDim2.new(0, 0, 0, 0)
     Main.ClipsDescendants = true
     Main.Visible = true
+    UICorner.CornerRadius = UDim.new(0, 10) -- Adjust corner radius (10 is a good start)
+    UICorner.Parent = Main
+    UIStroke.Color = Color3.fromRGB(255, 255, 255) -- White color
+    UIStroke.Thickness = 2 -- Outline thickness (adjust as needed)
+    UIStroke.Parent = Main
 -- ++++++++++++++++++++++++++++++++++++++++++++++++
 
 -- Add Background Image
@@ -1594,7 +1601,7 @@ end)
             TextBox.BackgroundTransparency = 1.000
             TextBox.Size = UDim2.new(0, 100, 0, 23)
             TextBox.Font = Enum.Font.Gotham
-            TextBox.Text = ""
+            TextBox.Text = "Input Here"
             TextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
             TextBox.TextSize = 14.000
 
