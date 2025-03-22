@@ -1,66 +1,43 @@
-local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/bloodball/-back-ups-for-libs/main/Kronos"))()
+-- Load the DrRay library from the GitHub repository Library
+local DrRayLibrary = loadstring(game:HttpGet("https://raw.githubusercontent.com/AZYsGithub/DrRay-UI-Library/main/DrRay.lua"))()
 
-local window = library:Window({
-   Title = "KronosLib - By LeadMarker#1219",
-   Accent = Color3.fromRGB(69,69,207),
-   Logo = 3610245066,
-   ToggleKey = Enum.KeyCode.LeftAlt
-})
+-- Create a new window and set its title and theme
+local window = DrRayLibrary:Load("DrRay!", "Default")
 
-local tab = window:NewTab({
-   Logo = 4483345998
-})
+-- Create the first tab with an image ID
+local tab1 = DrRayLibrary.newTab("Tab 1", "ImageIdHere")
 
-local tabsection = tab:TabSection({
-   Title = "TabSection"
-})
+-- Add elements to the first tab
+tab1.newLabel("Hello, this is Tab 1.")
+tab1.newButton("Button", "Prints Hello!", function()
+    print('Hello!')
+end)
+tab1.newToggle("Toggle", "Toggle! (prints the state)", true, function(toggleState)
+    if toggleState then
+        print("On")
+    else
+        print("Off")
+    end
+end)
+tab1.newInput("Input", "Prints your input.", function(text)
+    print("Entered text in Tab 1: " .. text)
+end)
 
-local column = tabsection:AddColumn({
-   Title = "Column"
-})
+-- Create the second tab with a different image ID
+local tab2 = DrRayLibrary.newTab("Tab 2", "ImageIdLogoHere")
 
-local section = column:Section({
-   Title = "Section"
-})
-
-section:Button({
-   Text = "Button",
-   Callback = function() end
-})
-
-section:Toggle({
-   Text = "Toggle",
-   State = false,
-   Callback = function() end
-})
-
-section:TextLabel({
-   Text = "Textlabel"
-})
-
-section:Divide({})
-
-section:Keybind({
-   Text = "Keybind",
-   Key = Enum.KeyCode.F,
-   Callback = function() end
-})
-
-section:Textbox({
-   Text = "Textbox",
-   Callback = function() end
-})
-
-section:Dropdown({
-   Text = "Dropdown",
-   List = {'option1', 'option2', 'option3'},
-   Callback = function() end
-})
-
-section:Slider({
-   Text = "Slider",
-   Min = 0,
-   Max = 100,
-   Def = 50,
-   Callback = function() end
-})
+-- Add elements to the second tab
+tab2.newLabel("Hello, this is Tab 2.")
+tab2.newButton("Button", "Prints Hello!", function()
+    print('Hello!')
+end)
+tab2.newToggle("Toggle", "Toggle! (prints the state)", true, function(toggleState)
+    if toggleState then
+        print("On")
+    else
+        print("Off")
+    end
+end)
+tab2.newDropdown("Dropdown", "Select one of these options!", {"water", "dog", "air", "bb", "airplane", "wohhho", "yeay", "delete"}, function(selectedOption)
+    print(selectedOption)
+end)
