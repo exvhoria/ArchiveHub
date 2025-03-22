@@ -114,12 +114,26 @@ function lib:Window(text, preset, closebind)
     UIStroke.Parent = Main
 -- ++++++++++++++++++++++++++++++++++++++++++++++++
 
+local Lighting = game:GetService("Lighting")
+
+-- Create or find existing BlurEffect in Lighting
+local blur = Lighting:FindFirstChild("UIBlurEffect")
+if not blur then
+    blur = Instance.new("BlurEffect")
+    blur.Name = "UIBlurEffect"
+    blur.Size = 10 -- Blur intensity (adjust as needed)
+    blur.Parent = Lighting
+end
+
+-- Enable blur effect when UI is open
+blur.Enabled = true
+
 -- Create Background Image
 local BackgroundImage = Instance.new("ImageLabel")
 BackgroundImage.Parent = Main
-BackgroundImage.Size = UDim2.new(1, 0, 1, 0) -- Full size of Main frame
+BackgroundImage.Size = UDim2.new(1, 0, 1, 0)
 BackgroundImage.Position = UDim2.new(0, 0, 0, 0)
-BackgroundImage.Image = "rbxassetid://116020126530334" -- Change to your image asset
+BackgroundImage.Image = "rbxassetid://116020126530334" -- Change this
 BackgroundImage.BackgroundTransparency = 1
 BackgroundImage.ZIndex = -1 -- Behind everything
 
@@ -128,25 +142,22 @@ local BGUICorner = Instance.new("UICorner")
 BGUICorner.CornerRadius = UDim.new(0, 10)
 BGUICorner.Parent = BackgroundImage
 
--- Create Blur Frame (frosted glass effect over image)
+-- Blur Frame to enhance glass effect
 local BlurFrame = Instance.new("Frame")
 BlurFrame.Parent = Main
-BlurFrame.Size = UDim2.new(1, 0, 1, 0) -- Full size of Main
+BlurFrame.Size = UDim2.new(1, 0, 1, 0)
 BlurFrame.Position = UDim2.new(0, 0, 0, 0)
 BlurFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 BlurFrame.BackgroundTransparency = 0.7 -- Adjust for glass effect
-BlurFrame.ZIndex = 0 -- Above the background image, below UI elements
+BlurFrame.ZIndex = 0
 
 -- Apply rounded corners to BlurFrame
 local BlurUICorner = Instance.new("UICorner")
 BlurUICorner.CornerRadius = UDim.new(0, 10)
 BlurUICorner.Parent = BlurFrame
 
--- **Create Blur Effect inside BlurFrame**
-local UIBlur = Instance.new("UIBlur")
-UIBlur.Parent = BlurFrame
-UIBlur.Size = 10 -- Blur intensity (adjust as needed)
-
+-- **Important: Disable blur when UI is closed**
+-- blur.Enabled = false
 
     -- Toggle Button (Floating)
 local ToggleButton = Instance.new("ImageButton")
