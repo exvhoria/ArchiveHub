@@ -1,5 +1,3 @@
--- Remake version of Vape UI for Roblox
-
 local lib = {RainbowColorValue = 0, HueSelectionPosition = 0}
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
@@ -97,8 +95,6 @@ function lib:Window(text, preset, closebind)
     local Title = Instance.new("TextLabel")
     local TabFolder = Instance.new("Folder")
     local DragFrame = Instance.new("Frame")
-    local MinimizeButton = Instance.new("TextButton")
-    local CloseButton = Instance.new("TextButton")
 
     Main.Name = "Main"
     Main.Parent = ui
@@ -139,7 +135,19 @@ function lib:Window(text, preset, closebind)
     DragFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
     DragFrame.BackgroundTransparency = 1.000
     DragFrame.Size = UDim2.new(0, 560, 0, 41)
+-- ++++++++++++++++++++++++++++++++++++++++++++++++
 
+        -- Floating Icon (Hidden by Default)
+    local FloatingIcon = Instance.new("ImageButton")
+    FloatingIcon.Parent = ui
+    FloatingIcon.BackgroundTransparency = 1
+    FloatingIcon.Size = UDim2.new(0, 40, 0, 40)
+    FloatingIcon.Position = UDim2.new(0.05, 0, 0.85, 0) -- Bottom left corner
+    FloatingIcon.Image = "https://github.com/exvhoria/ArchiveHub/logo.ico"
+    FloatingIcon.Visible = false -- Hidden initially
+
+        -- Create Minimize Button
+    local MinimizeButton = Instance.new("TextButton")
     MinimizeButton.Parent = DragFrame
     MinimizeButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
     MinimizeButton.Position = UDim2.new(0.85, 0, 0.2, 0) -- Adjust as needed
@@ -149,6 +157,8 @@ function lib:Window(text, preset, closebind)
     MinimizeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
     MinimizeButton.TextSize = 14
 
+        -- Create Close Button
+    local CloseButton = Instance.new("TextButton")
     CloseButton.Parent = DragFrame
     CloseButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
     CloseButton.Position = UDim2.new(0.9, 0, 0.2, 0) -- Adjust as needed
@@ -158,10 +168,27 @@ function lib:Window(text, preset, closebind)
     CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
     CloseButton.TextSize = 14
 
-    MinimizeButton.MouseButton1Click:Connect(function()
-        Main.Visible = not Main.Visible
-    end)
+        -- Minimize Button
+local minimized = false
+MinimizeButton.MouseButton1Click:Connect(function()
+    if not minimized then
+        Main:TweenSize(UDim2.new(0, 200, 0, 40), Enum.EasingDirection.Out, Enum.EasingStyle.Quart, 0.6, true)
+        wait(0.6)
+        Main.Visible = false
+        FloatingIcon.Visible = true
+    end
+    minimized = true
+end)
 
+-- Reopen UI from Floating Icon
+FloatingIcon.MouseButton1Click:Connect(function()
+    FloatingIcon.Visible = false
+    Main.Visible = true
+    Main:TweenSize(UDim2.new(0, 560, 0, 319), Enum.EasingDirection.Out, Enum.EasingStyle.Quart, 0.6, true)
+    minimized = false
+end)
+
+    -- Close Function
     CloseButton.MouseButton1Click:Connect(function()
         ui:Destroy()
     end)
