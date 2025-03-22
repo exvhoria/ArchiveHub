@@ -123,6 +123,11 @@ BackgroundImage.Image = "rbxassetid://116020126530334" -- Change this
 BackgroundImage.BackgroundTransparency = 1
 BackgroundImage.ZIndex = -1 -- Keeps it behind everything
 
+-- Apply rounded corners to the background
+local BGUICorner = Instance.new("UICorner")
+BGUICorner.CornerRadius = UDim.new(0, 10) -- Same corner radius as Main
+BGUICorner.Parent = BackgroundImage
+
     -- Toggle Button (Floating)
 local ToggleButton = Instance.new("ImageButton")
 ToggleButton.Parent = ui
