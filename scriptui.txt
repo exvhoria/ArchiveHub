@@ -169,13 +169,13 @@ CloseButton.TextSize = 14
 local FloatingIcon = Instance.new("ImageButton")
 FloatingIcon.Parent = ui
 FloatingIcon.BackgroundTransparency = 1
-FloatingIcon.Size = UDim2.new(0, 50, 0, 50)
-FloatingIcon.Position = UDim2.new(0.05, 0, 0.85, 0)
+FloatingIcon.Size = UDim2.new(0, 50, 0, 50) -- Ensure visibility
+FloatingIcon.Position = UDim2.new(0.05, 0, 0.85, 0) -- Bottom left corner
 FloatingIcon.Image = "https://raw.githubusercontent.com/exvhoria/ArchiveHub/main/logo.ico"
-FloatingIcon.Visible = false
-FloatingIcon.ZIndex = 999
+FloatingIcon.Visible = false -- Initially hidden
+FloatingIcon.ZIndex = 999 -- Ensure it appears above everything
 
--- Ensure Floating Icon is Draggable
+-- Make Floating Icon Draggable
 local function MakeDraggable(button)
     local dragging = false
     local dragInput, dragStart, startPos
@@ -214,13 +214,14 @@ local function MakeDraggable(button)
 end
 MakeDraggable(FloatingIcon)
 
--- Minimize Button Function
+-- Minimize Button (Shrink UI & Show Floating Icon)
 local minimized = false
 MinimizeButton.MouseButton1Click:Connect(function()
     if not minimized then
         Main:TweenSize(UDim2.new(0, 200, 0, 40), Enum.EasingDirection.Out, Enum.EasingStyle.Quart, 0.6, true)
         wait(0.6)
         Main.Visible = false
+        FloatingIcon.Position = UDim2.new(0.05, 0, 0.85, 0) -- Reset Position
         FloatingIcon.Visible = true
     end
     minimized = true
@@ -238,6 +239,7 @@ end)
 CloseButton.MouseButton1Click:Connect(function()
     ui:Destroy()
 end)
+
 
 
 
