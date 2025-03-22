@@ -117,16 +117,36 @@ function lib:Window(text, preset, closebind)
 -- Add Background Image
 local BackgroundImage = Instance.new("ImageLabel")
 BackgroundImage.Parent = Main
-BackgroundImage.Size = UDim2.new(1, 0, 1, 0) -- Fullscreen
+BackgroundImage.Size = UDim2.new(1, 0, 1, 0) -- Full size of Main frame
 BackgroundImage.Position = UDim2.new(0, 0, 0, 0)
-BackgroundImage.Image = "rbxassetid://116020126530334" -- Change this
+BackgroundImage.Image = "rbxassetid://116020126530334" -- Change this to your desired asset
 BackgroundImage.BackgroundTransparency = 1
 BackgroundImage.ZIndex = -1 -- Keeps it behind everything
 
 -- Apply rounded corners to the background
 local BGUICorner = Instance.new("UICorner")
-BGUICorner.CornerRadius = UDim.new(0, 10) -- Same corner radius as Main
+BGUICorner.CornerRadius = UDim.new(0, 10) -- Match Main's corner radius
 BGUICorner.Parent = BackgroundImage
+
+-- Add Blurry Glass Effect
+local BlurFrame = Instance.new("Frame")
+BlurFrame.Parent = Main
+BlurFrame.Size = UDim2.new(1, 0, 1, 0) -- Full size of Main frame
+BlurFrame.Position = UDim2.new(0, 0, 0, 0)
+BlurFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+BlurFrame.BackgroundTransparency = 0.7 -- Adjust transparency for glass effect
+BlurFrame.ZIndex = 0 -- Above the background but below UI elements
+
+-- Apply rounded corners to BlurFrame
+local BlurUICorner = Instance.new("UICorner")
+BlurUICorner.CornerRadius = UDim.new(0, 10)
+BlurUICorner.Parent = BlurFrame
+
+-- Add UIBlur effect
+local BlurEffect = Instance.new("UIBlur")
+BlurEffect.Parent = BlurFrame
+BlurEffect.Size = 10 -- Adjust blur intensity (higher = blurrier)
+
 
     -- Toggle Button (Floating)
 local ToggleButton = Instance.new("ImageButton")
