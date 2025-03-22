@@ -12,8 +12,8 @@ local success, gameInfo = pcall(function()
     return MarketplaceService:GetProductInfo(game.PlaceId)
 end)
 
-local gameName = "Unknown Game"
-if success and gameInfo then
+local gameName = "Unknown Game" -- Default fallback
+if success and gameInfo and gameInfo.Name then
     gameName = gameInfo.Name
 else
     warn("Failed to fetch game info: " .. tostring(gameInfo))
