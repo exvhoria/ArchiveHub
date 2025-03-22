@@ -2,7 +2,7 @@ local lib = loadstring(game:HttpGet"https://raw.githubusercontent.com/exvhoria/A
 -- https://raw.githubusercontent.com/exvhoria/ArchiveHub/main/scriptui.txt
 -- Original Maker: https://raw.githubusercontent.com/dawid-scripts/UI-Libs/main/Vape.txt
 
-local win = lib:Window("ArchiveHub V5 UI", Color3.fromRGB(44, 120, 224), Enum.KeyCode.RightControl)
+local win = lib:Window("ArchiveHub || GAME NAME HERE", Color3.fromRGB(44, 120, 224), Enum.KeyCode.RightControl)
 local tab = win:Tab("Tab Example")
 
 tab:Button("Button", function()
