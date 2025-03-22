@@ -97,6 +97,9 @@ function lib:Window(text, preset, closebind)
     local DragFrame = Instance.new("Frame")
     local UIStroke = Instance.new("UIStroke")
     local UICorner = Instance.new("UICorner")
+    local BGUICorner = Instance.new("UICorner")
+    local BackgroundImage = Instance.new("ImageLabel")
+    local ToggleButton = Instance.new("ImageButton")
 
     Main.Name = "Main"
     Main.Parent = ui
@@ -107,54 +110,38 @@ function lib:Window(text, preset, closebind)
     Main.Size = UDim2.new(0, 0, 0, 0)
     Main.ClipsDescendants = true
     Main.Visible = true
-    UICorner.CornerRadius = UDim.new(0, 10) -- Adjust corner radius (10 is a good start)
+    UICorner.CornerRadius = UDim.new(0, 10)
     UICorner.Parent = Main
-    UIStroke.Color = Color3.fromRGB(255, 255, 255) -- White color
-    UIStroke.Thickness = 2 -- Outline thickness (adjust as needed)
+    UIStroke.Color = Color3.fromRGB(255, 255, 255)
+    UIStroke.Thickness = 2
     UIStroke.Parent = Main
--- ++++++++++++++++++++++++++++++++++++++++++++++++
+    BackgroundImage.Parent = Main
+    BackgroundImage.Size = UDim2.new(1, 0, 1, 0)
+    BackgroundImage.Position = UDim2.new(0, 0, 0, 0)
+    BackgroundImage.Image = "rbxassetid://116020126530334"
+    BackgroundImage.BackgroundTransparency = 1
+    BackgroundImage.ZIndex = -1
+    BGUICorner.CornerRadius = UDim.new(0, 10)
+    BGUICorner.Parent = BackgroundImage
 
--- Add Background Image
-local BackgroundImage = Instance.new("ImageLabel")
-BackgroundImage.Parent = Main
-BackgroundImage.Size = UDim2.new(1, 0, 1, 0) -- Full size of Main frame
-BackgroundImage.Position = UDim2.new(0, 0, 0, 0)
-BackgroundImage.Image = "rbxassetid://116020126530334" -- Change this to your desired asset
-BackgroundImage.BackgroundTransparency = 1
-BackgroundImage.ZIndex = -1 -- Keeps it behind everything
+    ToggleButton.Parent = ui
+    ToggleButton.BackgroundTransparency = 0
+    ToggleButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    ToggleButton.Size = UDim2.new(0, 50, 0, 50)
+    ToggleButton.Position = UDim2.new(0.05, 0, 0.85, 0)
+    ToggleButton.Image = "rbxassetid://70459585499251"
+    ToggleButton.ZIndex = 999
 
--- Apply rounded corners to the background
-local BGUICorner = Instance.new("UICorner")
-BGUICorner.CornerRadius = UDim.new(0, 10) -- Same corner radius as Main
-BGUICorner.Parent = BackgroundImage
+    local uiHidden = false
+    ToggleButton.MouseButton1Click:Connect(function()
+        if uiHidden then
+            Main.Visible = true
+        else
+            Main.Visible = false
+        end
+        uiHidden = not uiHidden
+    end)
 
-
-    -- Toggle Button (Floating)
-local ToggleButton = Instance.new("ImageButton")
-ToggleButton.Parent = ui
-ToggleButton.BackgroundTransparency = 0 -- Set to visible for debugging
-ToggleButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50) -- Temporary to make it visible
-ToggleButton.Size = UDim2.new(0, 50, 0, 50)
-ToggleButton.Position = UDim2.new(0.05, 0, 0.85, 0) -- Adjust if off-screen
-ToggleButton.Image = "rbxassetid://70459585499251"
-ToggleButton.ZIndex = 999 -- Ensure it's on top
-
--- Debugging Print Statement (Check if it's created)
-print("ToggleButton created at:", ToggleButton.Position)
-
--- Toggle UI Visibility
-local uiHidden = false
-ToggleButton.MouseButton1Click:Connect(function()
-    if uiHidden then
-        Main.Visible = true
-    else
-        Main.Visible = false
-    end
-    uiHidden = not uiHidden
-    print("UI Toggled, Now Visible:", Main.Visible) -- Debug Print
-end)
-
--- ++++++++++++++++++++++++++++++++++++++++++++++++
 
     TabHold.Name = "TabHold"
     TabHold.Parent = Main
@@ -174,7 +161,7 @@ end)
     Title.BackgroundTransparency = 1.000
     Title.Position = UDim2.new(0.0339285731, 0, 0.0564263314, 0)
     Title.Size = UDim2.new(0, 200, 0, 23)
-    Title.Font = Enum.Font.Bangers
+    Title.Font = Enum.Font.GothamBold
     Title.Text = text
     Title.TextColor3 = Color3.fromRGB(255, 255, 255)
     Title.TextSize = 12.000
@@ -821,51 +808,42 @@ end)
                 end
             )()
 
-local function move(input)
-    local relativePos = (input.Position.X - SlideFrame.AbsolutePosition.X) / SlideFrame.AbsoluteSize.X
+    local function move(input)
+        local relativePos = (input.Position.X - SlideFrame.AbsolutePosition.X) / SlideFrame.AbsoluteSize.X
+        relativePos = math.clamp(relativePos, 0, 1)
+        CurrentValueFrame.Size = UDim2.new(relativePos, 0, 0, 3)
+        SlideCircle.Position = UDim2.new(relativePos, -6, -1.30499995, 0)
 
-    -- Make sure the slider stays within bounds
-    relativePos = math.clamp(relativePos, 0, 1)
+        local value = math.floor((relativePos * (max - min)) + min)
+        SliderValue.Text = tostring(value)
+        pcall(callback, value)
 
-    -- Apply the new position instantly instead of using Tween (prevents lag)
-    CurrentValueFrame.Size = UDim2.new(relativePos, 0, 0, 3)
-    SlideCircle.Position = UDim2.new(relativePos, -6, -1.30499995, 0)
-
-    -- Update the slider value
-    local value = math.floor((relativePos * (max - min)) + min)
-    SliderValue.Text = tostring(value)
-    pcall(callback, value)
-
-    print("Slider moved:", relativePos, "Value:", value) -- Debugging log
-end
-
--- Detect when user starts dragging the slider
-SlideCircle.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-        dragging = true
+        print("Slider moved:", relativePos, "Value:", value)
     end
-end)
 
--- Detect when user stops dragging
-SlideCircle.InputEnded:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-        dragging = false
-    end
-end)
+    SlideCircle.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+        end
+    end)
 
--- Listen for slider movement (Mouse + Touch)
-UserInputService.InputChanged:Connect(function(input)
-    if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-        move(input)
-    end
-end)
+    SlideCircle.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = false
+        end
+    end)
 
--- Special Fix for Mobile: Listen for Touch Dragging
-UserInputService.TouchMoved:Connect(function(input)
-    if dragging then
-        move(input)
-    end
-end)
+    UserInputService.InputChanged:Connect(function(input)
+        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+            move(input)
+        end
+    end)
+
+    UserInputService.TouchMoved:Connect(function(input)
+        if dragging then
+            move(input)
+        end
+    end)
 
             Tab.CanvasSize = UDim2.new(0, 0, 0, TabLayout.AbsoluteContentSize.Y)
         end
