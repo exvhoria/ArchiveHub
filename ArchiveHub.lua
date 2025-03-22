@@ -39,7 +39,7 @@ changeclr:Colorpicker("Change UI Color", Color3.fromRGB(44, 120, 224), function(
     lib:ChangePresetColor(Color3.fromRGB(t.R * 255, t.G * 255, t.B * 255))
 end)
 
--- Player Tab
+-- Player Settings Tab
 local playerTab = win:Tab("Player Settings")
 
 playerTab:Slider("Walk Speed", 16, 100, 16, function(speed)
@@ -52,6 +52,7 @@ end)
 playerTab:Slider("Jump Power", 50, 200, 50, function(jumpPower)
     local player = game.Players.LocalPlayer
     if player and player.Character and player.Character:FindFirstChild("Humanoid") then
+        player.Character.Humanoid.UseJumpPower = true
         player.Character.Humanoid.JumpPower = jumpPower
     end
 end)
@@ -60,13 +61,72 @@ playerTab:Toggle("No Clip (Walk Through Walls)", false, function(enabled)
     local player = game.Players.LocalPlayer
     local humanoidRootPart = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
     
+    if humanoidRootPart then
+        humanoidRootPart.CanCollide = not enabled
+        
+        -- No Clip loop for all parts
+        local function toggleNoClip()
+            for _, part in pairs(player.Character:GetDescendants()) do
+                if part:IsA("BasePart") then
+                    part.CanCollide = not enabled
+                end
+            end
+        end
+        
+        -- Update CanCollide continuously while enabled
+        if enabled then
+            game:GetService("RunService").Stepped:Connect(toggleNoClip)
+        end
+    end
+end)
+
+-- ESP Tab
+local espTab = win:Tab("ESP Settings")
+
+espTab:Toggle("ESP Bones", false, function(enabled)
+    local player = game.Players.LocalPlayer
+    local espParts = {}
+
+    local function createESP(part)
+        if not part or espParts[part] then return end
+        
+        local adorn = Instance.new("BoxHandleAdornment")
+        adorn.Adornee = part
+        adorn.Size = part.Size
+        adorn.Color3 = Color3.fromRGB(255, 0, 0)
+        adorn.Transparency = 0.5
+        adorn.ZIndex = 5
+        adorn.AlwaysOnTop = true
+        adorn.Parent = part
+        espParts[part] = adorn
+    end
+
+    local function clearESP()
+        for part, adorn in pairs(espParts) do
+            if adorn then adorn:Destroy() end
+        end
+        espParts = {}
+    end
+
     if enabled then
-        if humanoidRootPart then
-            humanoidRootPart.CanCollide = false
+        -- Create ESP for bones (all parts in character)
+        local function applyESP()
+            if player.Character then
+                for _, part in pairs(player.Character:GetDescendants()) do
+                    if part:IsA("BasePart") then
+                        createESP(part)
+                    end
+                end
+            end
         end
+        
+        applyESP()
+        -- Update ESP each frame (in case parts are added/removed)
+        espConnection = game:GetService("RunService").RenderStepped:Connect(applyESP)
     else
-        if humanoidRootPart then
-            humanoidRootPart.CanCollide = true
+        if espConnection then
+            espConnection:Disconnect()
         end
+        clearESP()
     end
 end)
