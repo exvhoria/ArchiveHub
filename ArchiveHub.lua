@@ -1,7 +1,7 @@
 local lib = loadstring(game:HttpGet"https://raw.githubusercontent.com/dawid-scripts/UI-Libs/main/Vape.txt")()
 
-local win = lib:Window("PREVIEW", Color3.fromRGB(44, 120, 224), Enum.KeyCode.RightControl)
-local tab = win:Tab("Tab 1")
+local win = lib:Window("ArchiveHub | Dead Rails IDK", Color3.fromRGB(44, 120, 224), Enum.KeyCode.RightControl)
+local tab = win:Tab("Tab Examp")
 
 tab:Button("Button", function()
     lib:Notification("Notification", "Hello!", "Hi!")
