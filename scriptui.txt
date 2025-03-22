@@ -106,51 +106,31 @@ function lib:Window(text, preset, closebind)
     Main.ClipsDescendants = true
     Main.Visible = true
 -- ++++++++++++++++++++++++++++++++++++++++++++++++
-    local ToggleButton = Instance.new("ImageButton")
-    ToggleButton.Parent = ui
-    ToggleButton.BackgroundTransparency = 1
-    ToggleButton.Size = UDim2.new(0, 50, 0, 50)
-    ToggleButton.Position = UDim2.new(0.05, 0, 0.85, 0) -- Bottom left corner
-    ToggleButton.Image = "https://raw.githubusercontent.com/exvhoria/ArchiveHub/main/logo.ico"
-    ToggleButton.ZIndex = 999 -- Ensure it's on top
 
-    -- Toggle UI Visibility
-    local uiHidden = false
-    ToggleButton.MouseButton1Click:Connect(function()
-        if uiHidden then
-            Main.Visible = true
-        else
-            Main.Visible = false
-        end
-        uiHidden = not uiHidden
-    end)
+    -- Toggle Button (Floating)
+local ToggleButton = Instance.new("ImageButton")
+ToggleButton.Parent = ui
+ToggleButton.BackgroundTransparency = 0 -- Set to visible for debugging
+ToggleButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50) -- Temporary to make it visible
+ToggleButton.Size = UDim2.new(0, 50, 0, 50)
+ToggleButton.Position = UDim2.new(0.05, 0, 0.85, 0) -- Adjust if off-screen
+ToggleButton.Image = "https://raw.githubusercontent.com/exvhoria/ArchiveHub/main/logo.ico"
+ToggleButton.ZIndex = 999 -- Ensure it's on top
 
+-- Debugging Print Statement (Check if it's created)
+print("ToggleButton created at:", ToggleButton.Position)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+-- Toggle UI Visibility
+local uiHidden = false
+ToggleButton.MouseButton1Click:Connect(function()
+    if uiHidden then
+        Main.Visible = true
+    else
+        Main.Visible = false
+    end
+    uiHidden = not uiHidden
+    print("UI Toggled, Now Visible:", Main.Visible) -- Debug Print
+end)
 
 -- ++++++++++++++++++++++++++++++++++++++++++++++++
 
