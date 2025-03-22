@@ -114,38 +114,38 @@ function lib:Window(text, preset, closebind)
     UIStroke.Parent = Main
 -- ++++++++++++++++++++++++++++++++++++++++++++++++
 
--- Add Background Image
+-- Create Background Image
 local BackgroundImage = Instance.new("ImageLabel")
 BackgroundImage.Parent = Main
 BackgroundImage.Size = UDim2.new(1, 0, 1, 0) -- Full size of Main frame
 BackgroundImage.Position = UDim2.new(0, 0, 0, 0)
-BackgroundImage.Image = "rbxassetid://116020126530334" -- Change this to your desired asset
+BackgroundImage.Image = "rbxassetid://116020126530334" -- Change to your image asset
 BackgroundImage.BackgroundTransparency = 1
-BackgroundImage.ZIndex = -1 -- Keeps it behind everything
+BackgroundImage.ZIndex = -1 -- Behind everything
 
 -- Apply rounded corners to the background
 local BGUICorner = Instance.new("UICorner")
-BGUICorner.CornerRadius = UDim.new(0, 10) -- Match Main's corner radius
+BGUICorner.CornerRadius = UDim.new(0, 10)
 BGUICorner.Parent = BackgroundImage
 
--- Add Blurry Glass Effect
+-- Create Blur Frame (frosted glass effect over image)
 local BlurFrame = Instance.new("Frame")
 BlurFrame.Parent = Main
-BlurFrame.Size = UDim2.new(1, 0, 1, 0) -- Full size of Main frame
+BlurFrame.Size = UDim2.new(1, 0, 1, 0) -- Full size of Main
 BlurFrame.Position = UDim2.new(0, 0, 0, 0)
 BlurFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-BlurFrame.BackgroundTransparency = 0.7 -- Adjust transparency for glass effect
-BlurFrame.ZIndex = 0 -- Above the background but below UI elements
+BlurFrame.BackgroundTransparency = 0.7 -- Adjust for glass effect
+BlurFrame.ZIndex = 0 -- Above the background image, below UI elements
 
 -- Apply rounded corners to BlurFrame
 local BlurUICorner = Instance.new("UICorner")
 BlurUICorner.CornerRadius = UDim.new(0, 10)
 BlurUICorner.Parent = BlurFrame
 
--- Add UIBlur effect
-local BlurEffect = Instance.new("UIBlur")
-BlurEffect.Parent = BlurFrame
-BlurEffect.Size = 10 -- Adjust blur intensity (higher = blurrier)
+-- **Create Blur Effect inside BlurFrame**
+local UIBlur = Instance.new("UIBlur")
+UIBlur.Parent = BlurFrame
+UIBlur.Size = 10 -- Blur intensity (adjust as needed)
 
 
     -- Toggle Button (Floating)
