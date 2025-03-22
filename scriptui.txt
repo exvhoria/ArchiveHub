@@ -802,38 +802,49 @@ end)
 local function move(input)
     local relativePos = (input.Position.X - SlideFrame.AbsolutePosition.X) / SlideFrame.AbsoluteSize.X
 
-    -- Ensure position doesn't go out of bounds (clamp values)
-    local pos = UDim2.new(math.clamp(relativePos, 0, 1), -6, -1.30499995, 0)
-    local pos1 = UDim2.new(math.clamp(relativePos, 0, 1), 0, 0, 3)
+    -- Make sure the slider stays within bounds
+    relativePos = math.clamp(relativePos, 0, 1)
 
-    -- Apply smooth movement
-    CurrentValueFrame:TweenSize(pos1, "Out", "Sine", 0.05, true)
-    SlideCircle:TweenPosition(pos, "Out", "Sine", 0.05, true)
+    -- Apply the new position instantly instead of using Tween (prevents lag)
+    CurrentValueFrame.Size = UDim2.new(relativePos, 0, 0, 3)
+    SlideCircle.Position = UDim2.new(relativePos, -6, -1.30499995, 0)
 
-    -- Calculate and update value
-    local value = math.floor(((pos.X.Scale * max) / max) * (max - min) + min)
+    -- Update the slider value
+    local value = math.floor((relativePos * (max - min)) + min)
     SliderValue.Text = tostring(value)
     pcall(callback, value)
 
-    print("Slider moved to:", pos.X.Scale, "Value:", value) -- Debug log
+    print("Slider moved:", relativePos, "Value:", value) -- Debugging log
 end
+
+-- Detect when user starts dragging the slider
 SlideCircle.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
         dragging = true
     end
 end)
 
+-- Detect when user stops dragging
 SlideCircle.InputEnded:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
         dragging = false
     end
 end)
+
+-- Listen for slider movement (Mouse + Touch)
 UserInputService.InputChanged:Connect(function(input)
     if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-        print("Input detected:", input.UserInputType, "Position:", input.Position.X)
-        move(input) -- Call the move function with updated values
+        move(input)
     end
 end)
+
+-- Special Fix for Mobile: Listen for Touch Dragging
+UserInputService.TouchMoved:Connect(function(input)
+    if dragging then
+        move(input)
+    end
+end)
+
             Tab.CanvasSize = UDim2.new(0, 0, 0, TabLayout.AbsoluteContentSize.Y)
         end
         function tabcontent:Dropdown(text, list, callback)
