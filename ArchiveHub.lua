@@ -136,3 +136,26 @@ espTab:Toggle("ESP Bones", false, function(enabled)
         clearESP()
     end
 end)
+
+-- Theme Settings Tab
+local themeTab = win:Tab("Theme Settings")
+
+-- Transparency Slider
+themeTab:Slider("UI Transparency", 0, 1, 0, function(value)
+    ui.BackgroundTransparency = value
+end)
+
+-- Custom Background Toggle
+local useCustomBG = false
+themeTab:Toggle("Use Custom Background", false, function(state)
+    useCustomBG = state
+    BackgroundImage.Visible = useCustomBG
+end)
+
+-- Background Image Textbox
+themeTab:Textbox("Custom Background ID", false, function(assetID)
+    if useCustomBG and tonumber(assetID) then
+        BackgroundImage.Image = "rbxassetid://" .. assetID
+    end
+end)
+
