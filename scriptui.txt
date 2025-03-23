@@ -98,7 +98,6 @@ function lib:Window(text, preset, closebind)
     local UIStroke = Instance.new("UIStroke")
     local UICorner = Instance.new("UICorner")
     local BGUICorner = Instance.new("UICorner")
-    local BackgroundImage = Instance.new("ImageLabel")
     local ToggleButton = Instance.new("ImageButton")
 
     Main.Name = "Main"
@@ -115,6 +114,8 @@ function lib:Window(text, preset, closebind)
     UIStroke.Color = Color3.fromRGB(255, 255, 255)
     UIStroke.Thickness = 2
     UIStroke.Parent = Main
+
+    local BackgroundImage = Instance.new("ImageLabel")
     BackgroundImage.Parent = Main
     BackgroundImage.Size = UDim2.new(1, 0, 1, 0)
     BackgroundImage.Position = UDim2.new(0, 0, 0, 0)
@@ -162,7 +163,7 @@ function lib:Window(text, preset, closebind)
     Title.Position = UDim2.new(0.0339285731, 0, 0.0564263314, 0)
     Title.Size = UDim2.new(0, 200, 0, 23)
     Title.Font = Enum.Font.GothamBold
-    Title.Text = text .. " || " .. gameName
+    Title.Text = text
     Title.TextColor3 = Color3.fromRGB(255, 255, 255)
     Title.TextSize = 12.000
     Title.TextXAlignment = Enum.TextXAlignment.Left
