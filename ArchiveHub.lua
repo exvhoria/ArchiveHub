@@ -9,6 +9,9 @@ local win = lib:Window(scriptHubName .. " || " .. gameName, devName, Color3.from
 
 local tab = win:Tab("Tab Example")
 
+tab:Label("Example Label")
+tab:Label("Update:\n1. ESP Bones\n2. Fullbright removed\n3. Add Noclip")
+
 tab:Button("Button", function()
     lib:Notification("Notification", "Hello!", "Hi!")
 end)
@@ -36,8 +39,6 @@ end)
 tab:Bind("Bind", Enum.KeyCode.RightShift, function()
     print("Pressed!")
 end)
-
-tab:Label("Label")
 
 local changeclr = win:Tab("Change UI Color")
 changeclr:Colorpicker("Change UI Color", Color3.fromRGB(44, 120, 224), function(t)
