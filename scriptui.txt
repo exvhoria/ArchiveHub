@@ -128,10 +128,11 @@ function lib:Window(scriptHubName, devName, preset, closebind)
 local ToggleButton = Instance.new("ImageButton")
 ToggleButton.Parent = ui
 ToggleButton.BackgroundTransparency = 1 -- Make background transparent
-ToggleButton.Size = UDim2.new(0, 50, 0, 50) -- Size of the button
-ToggleButton.Position = UDim2.new(0.5, 0, 0, 5) -- Middle top with a small offset
+ToggleButton.Size = UDim2.new(0, 25, 0, 25) -- Half the original size (50x50 -> 25x25)
+ToggleButton.Position = UDim2.new(0.5, 0, 0, 10) -- Middle top with a small offset
 ToggleButton.AnchorPoint = Vector2.new(0.5, 0) -- Anchor to the middle top
 ToggleButton.Image = "rbxassetid://70459585499251" -- Replace with a better icon if available
+ToggleButton.ScaleType = Enum.ScaleType.Fit -- Ensure the image fits within the button
 ToggleButton.ZIndex = 999
 ToggleButton.ImageColor3 = Color3.fromRGB(200, 200, 200) -- Light gray color for the icon
 
@@ -147,7 +148,7 @@ end)
 -- Add a circular background for a modern look
 local CircleBackground = Instance.new("Frame")
 CircleBackground.Parent = ToggleButton
-CircleBackground.Size = UDim2.new(0.7, 0, 0.7, 0) -- Slightly larger than the button
+CircleBackground.Size = UDim2.new(1.2, 0, 1.2, 0) -- Slightly larger than the button
 CircleBackground.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 CircleBackground.BackgroundTransparency = 0.5 -- Semi-transparent
 CircleBackground.ZIndex = 998
@@ -166,9 +167,9 @@ ToggleButton.MouseButton1Click:Connect(function()
     Main.Visible = not uiHidden
 
     -- Add a small animation for feedback
-    ToggleButton:TweenSize(UDim2.new(0, 45, 0, 45), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.1, true)
+    ToggleButton:TweenSize(UDim2.new(0, 22, 0, 22), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.1, true)
     wait(0.1)
-    ToggleButton:TweenSize(UDim2.new(0, 50, 0, 50), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.1, true)
+    ToggleButton:TweenSize(UDim2.new(0, 25, 0, 25), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.1, true)
 end)
 
     TabHold.Name = "TabHold"
