@@ -1551,36 +1551,33 @@ TitleLabel.RichText = true  -- Enable rich text formatting
             Tab.CanvasSize = UDim2.new(0, 0, 0, TabLayout.AbsoluteContentSize.Y)
         end
         function tabcontent:Label(text)
-            local Label = Instance.new("TextButton")
+            local Label = Instance.new("TextLabel")
             local LabelCorner = Instance.new("UICorner")
-            local LabelTitle = Instance.new("TextLabel")
 
-            Label.Name = "Button"
+            Label.Name = "Label"
             Label.Parent = Tab
             Label.BackgroundColor3 = Color3.fromRGB(34, 34, 34)
-            Label.Size = UDim2.new(0, 363, 0, 42)
-            Label.AutoButtonColor = false
-            Label.Font = Enum.Font.SourceSans
-            Label.Text = ""
-            Label.TextColor3 = Color3.fromRGB(0, 0, 0)
-            Label.TextSize = 14.000
+            Label.Size = UDim2.new(0, 363, 0, 42) -- Initial size
+            Label.TextWrapped = true -- Enable text wrapping
+            Label.TextYAlignment = Enum.TextYAlignment.Top -- Align text to the top
+            Label.Font = Enum.Font.Gotham
+            Label.Text = text
+            Label.TextColor3 = Color3.fromRGB(255, 255, 255)
+            Label.TextSize = 14
+            Label.TextXAlignment = Enum.TextXAlignment.Left
 
+            -- Automatic text size adjustment
+            Label:GetPropertyChangedSignal("TextBounds"):Connect(function()
+                Label.Size = UDim2.new(0, 363, 0, Label.TextBounds.Y + 10)
+                Tab.CanvasSize = UDim2.new(0, 0, 0, TabLayout.AbsoluteContentSize.Y)
+            end)
+
+            -- Apply UI corner styling
             LabelCorner.CornerRadius = UDim.new(0, 5)
-            LabelCorner.Name = "ButtonCorner"
+            LabelCorner.Name = "LabelCorner"
             LabelCorner.Parent = Label
 
-            LabelTitle.Name = "ButtonTitle"
-            LabelTitle.Parent = Label
-            LabelTitle.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-            LabelTitle.BackgroundTransparency = 1.000
-            LabelTitle.Position = UDim2.new(0.0358126722, 0, 0, 0)
-            LabelTitle.Size = UDim2.new(0, 187, 0, 42)
-            LabelTitle.Font = Enum.Font.Gotham
-            LabelTitle.Text = text
-            LabelTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
-            LabelTitle.TextSize = 14.000
-            LabelTitle.TextXAlignment = Enum.TextXAlignment.Left
-
+            -- Ensure tab layout updates
             Tab.CanvasSize = UDim2.new(0, 0, 0, TabLayout.AbsoluteContentSize.Y)
         end
         function tabcontent:Textbox(text, disapper, callback)
