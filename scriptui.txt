@@ -6,18 +6,6 @@ local LocalPlayer = game:GetService("Players").LocalPlayer
 local Mouse = LocalPlayer:GetMouse()
 local PresetColor = Color3.fromRGB(44, 120, 224)
 local CloseBind = Enum.KeyCode.RightControl
-local MarketplaceService = game:GetService("MarketplaceService")
-
-local success, gameInfo = pcall(function()
-    return MarketplaceService:GetProductInfo(game.PlaceId)
-end)
-
-local gameName = "Unknown Game" -- Default fallback
-if success and gameInfo and gameInfo.Name then
-    gameName = gameInfo.Name
-else
-    warn("Failed to fetch game info: " .. tostring(gameInfo))
-end
 
 local ui = Instance.new("ScreenGui")
 ui.Name = "ui"
