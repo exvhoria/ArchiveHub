@@ -1574,7 +1574,7 @@ TitleLabel.RichText = true  -- Enable rich text formatting
     LabelPadding.Parent = Label
     LabelPadding.PaddingTop = UDim.new(0, 5) -- 5px padding from top
     LabelPadding.PaddingBottom = UDim.new(0, 5) -- 5px padding from bottom
-    LabelPadding.PaddingLeft = UDim.new(0, 10) -- 10px padding from left
+    LabelPadding.PaddingLeft = UDim.new(0, 12) -- 10px padding from left
     LabelPadding.PaddingRight = UDim.new(0, 10) -- 10px padding from right
 
     -- Apply UI corner styling
