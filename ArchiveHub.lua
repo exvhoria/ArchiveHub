@@ -10,7 +10,7 @@ local win = lib:Window(scriptHubName .. " || " .. gameName, devName, Color3.from
 local tab = win:Tab("Tab Example")
 
 tab:Label("Example Label")
-tab:Label("Update:\n1. ESP Bones\n2. Fullbright removed\n3. Add Noclip")
+tab:Label("This a update that I made so far in this script, you can see the recent update below. For the full update log check at my github (github.com/exvhoria)! \n\nUpdate:\n1. ESP Bones\n2. Fullbright removed\n3. Add Noclip")
 
 tab:Button("Button", function()
     lib:Notification("Notification", "Hello!", "Hi!")
