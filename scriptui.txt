@@ -128,8 +128,9 @@ function lib:Window(scriptHubName, devName, preset, closebind)
 local ToggleButton = Instance.new("ImageButton")
 ToggleButton.Parent = ui
 ToggleButton.BackgroundTransparency = 1 -- Make background transparent
-ToggleButton.Size = UDim2.new(0, 50, 0, 50)
-ToggleButton.Position = UDim2.new(0.05, 0, 0.85, 0)
+ToggleButton.Size = UDim2.new(0, 50, 0, 50) -- Size of the button
+ToggleButton.Position = UDim2.new(0.5, 0, 0, 10) -- Middle top with a small offset
+ToggleButton.AnchorPoint = Vector2.new(0.5, 0) -- Anchor to the middle top
 ToggleButton.Image = "rbxassetid://70459585499251" -- Replace with a better icon if available
 ToggleButton.ZIndex = 999
 ToggleButton.ImageColor3 = Color3.fromRGB(200, 200, 200) -- Light gray color for the icon
