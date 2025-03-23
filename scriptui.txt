@@ -156,34 +156,24 @@ function lib:Window(scriptHubName, devName, preset, closebind)
     TabHoldLayout.SortOrder = Enum.SortOrder.LayoutOrder
     TabHoldLayout.Padding = UDim.new(0, 11)
 
-    -- ScriptHub Title (Bigger, Bold)
-local ScriptHubTitle = Instance.new("TextLabel")
-ScriptHubTitle.Name = "ScriptHubTitle"
-ScriptHubTitle.Parent = Main
-ScriptHubTitle.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-ScriptHubTitle.BackgroundTransparency = 1.000
-ScriptHubTitle.Position = UDim2.new(0.033, 0, 0.03, 0) -- Adjust position
-ScriptHubTitle.Size = UDim2.new(0, 250, 0, 25)  -- Bigger size
-ScriptHubTitle.Font = Enum.Font.GothamBold
-ScriptHubTitle.Text = scriptHubName
-ScriptHubTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
-ScriptHubTitle.TextSize = 16  -- Bigger font
-ScriptHubTitle.TextXAlignment = Enum.TextXAlignment.Left
+   -- Combined Title (ScriptHub Name + Developer Name)
+local TitleLabel = Instance.new("TextLabel")
+TitleLabel.Name = "TitleLabel"
+TitleLabel.Parent = Main
+TitleLabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+TitleLabel.BackgroundTransparency = 1.000
+TitleLabel.Position = UDim2.new(0.033, 0, 0.03, 0)  -- Adjusted position
+TitleLabel.Size = UDim2.new(0, 400, 0, 25)  -- Adjusted size for side-by-side text
+TitleLabel.Font = Enum.Font.GothamBold
+TitleLabel.Text = scriptHubName .. " - " .. devName
+TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+TitleLabel.TextSize = 16  -- Bigger font for ScriptHub Name
+TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
 
--- Developer Name (Smaller, Gray, Smooth Font)
-local DeveloperName = Instance.new("TextLabel")
-DeveloperName.Name = "DeveloperName"
-DeveloperName.Parent = Main
-DeveloperName.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-DeveloperName.BackgroundTransparency = 1.000
-DeveloperName.Position = UDim2.new(0.033, 0, 0.07, 0)  -- Below ScriptHub name
-DeveloperName.Size = UDim2.new(0, 250, 0, 18)
-DeveloperName.Font = Enum.Font.Gotham  -- Smoother font
-DeveloperName.Text = "- " .. devName
-DeveloperName.TextColor3 = Color3.fromRGB(180, 180, 180)  -- Gray color
-DeveloperName.TextSize = 12
-DeveloperName.TextXAlignment = Enum.TextXAlignment.Left
-
+-- Make developer name smaller and gray
+local RichText = [[<font size="16">%s</font> <font size="12" color="rgb(180,180,180)">- %s</font>]]
+TitleLabel.Text = string.format(RichText, scriptHubName, devName)
+TitleLabel.RichText = true  -- Enable rich text formatting
 
     DragFrame.Name = "DragFrame"
     DragFrame.Parent = Main
