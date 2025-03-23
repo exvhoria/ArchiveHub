@@ -136,30 +136,31 @@ function lib:Window(scriptHubName, devName, preset, closebind)
 -- Create the ToggleButton
 local ToggleButton = Instance.new("ImageButton")
 ToggleButton.Parent = ui
-ToggleButton.BackgroundTransparency = 1 -- Make background transparent
+ToggleButton.BackgroundTransparency = 0 -- Make background solid
+ToggleButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0) -- Solid black color
 ToggleButton.Size = UDim2.new(0, 25, 0, 25) -- Half the original size (50x50 -> 25x25)
-ToggleButton.Position = UDim2.new(0.5, 0, 0, 10) -- Middle top with a small offset
+ToggleButton.Position = UDim2.new(0.5, 0, 0, 5) -- Middle top with a smaller offset (5 pixels from the top)
 ToggleButton.AnchorPoint = Vector2.new(0.5, 0) -- Anchor to the middle top
 ToggleButton.Image = "rbxassetid://70459585499251" -- Replace with a better icon if available
 ToggleButton.ScaleType = Enum.ScaleType.Fit -- Ensure the image fits within the button
 ToggleButton.ZIndex = 999
-ToggleButton.ImageColor3 = Color3.fromRGB(200, 200, 200) -- Light gray color for the icon
+ToggleButton.ImageColor3 = Color3.fromRGB(255, 255, 255) -- White color for the icon (for better contrast)
 
 -- Add a subtle hover effect
 ToggleButton.MouseEnter:Connect(function()
-    ToggleButton.ImageColor3 = Color3.fromRGB(255, 255, 255) -- White color on hover
+    ToggleButton.ImageColor3 = Color3.fromRGB(200, 200, 200) -- Light gray color on hover
 end)
 
 ToggleButton.MouseLeave:Connect(function()
-    ToggleButton.ImageColor3 = Color3.fromRGB(200, 200, 200) -- Revert to light gray
+    ToggleButton.ImageColor3 = Color3.fromRGB(255, 255, 255) -- Revert to white
 end)
 
 -- Add a circular background for a modern look
 local CircleBackground = Instance.new("Frame")
 CircleBackground.Parent = ToggleButton
 CircleBackground.Size = UDim2.new(1.2, 0, 1.2, 0) -- Slightly larger than the button
-CircleBackground.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-CircleBackground.BackgroundTransparency = 0.5 -- Semi-transparent
+CircleBackground.BackgroundColor3 = Color3.fromRGB(0, 0, 0) -- Solid black color
+CircleBackground.BackgroundTransparency = 0 -- Fully opaque
 CircleBackground.ZIndex = 998
 CircleBackground.AnchorPoint = Vector2.new(0.5, 0.5)
 CircleBackground.Position = UDim2.new(0.5, 0, 0.5, 0)
