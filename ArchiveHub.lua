@@ -1,7 +1,7 @@
 local ui = loadstring(game:HttpGet("https://raw.githubusercontent.com/exvhoria/ArchiveHub/main/scriptui.txt"))()
 local scriptHubName = "ArchiveHub"
 local devName = "GhosttedXV"
-local win = lib:Window(scriptHubName .., devName, Color3.fromRGB(44, 120, 224), Enum.KeyCode.RightControl)
+local window = ui:Window(scriptHubName .., devName, Color3.fromRGB(44, 120, 224), Enum.KeyCode.RightControl)
 
 -- Function:ESP --
 local espEnabled = false
