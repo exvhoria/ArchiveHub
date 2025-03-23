@@ -119,7 +119,7 @@ function lib:Window(scriptHubName, devName, preset, closebind)
     BackgroundImage.Parent = Main
     BackgroundImage.Size = UDim2.new(1, 0, 1, 0)
     BackgroundImage.Position = UDim2.new(0, 0, 0, 0)
-    BackgroundImage.Image = "https://proxy.roblox.com/?url=https://raw.githubusercontent.com/exvhoria/ArchiveHub/main/1325365.jpg"
+    BackgroundImage.Image = "rbxassetid://116020126530334"
     BackgroundImage.BackgroundTransparency = 1
     BackgroundImage.ZIndex = -1
     BGUICorner.CornerRadius = UDim.new(0, 10)
