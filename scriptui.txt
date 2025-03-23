@@ -85,7 +85,7 @@ local function MakeDraggable(topbarobject, object)
     )
 end
 
-function lib:Window(text, preset, closebind)
+function lib:Window(scriptHubName, devName, preset, closebind)
     CloseBind = closebind or Enum.KeyCode.RightControl
     PresetColor = preset or Color3.fromRGB(44, 120, 224)
     fs = false
@@ -156,17 +156,34 @@ function lib:Window(text, preset, closebind)
     TabHoldLayout.SortOrder = Enum.SortOrder.LayoutOrder
     TabHoldLayout.Padding = UDim.new(0, 11)
 
-    Title.Name = "Title"
-    Title.Parent = Main
-    Title.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    Title.BackgroundTransparency = 1.000
-    Title.Position = UDim2.new(0.0339285731, 0, 0.0564263314, 0)
-    Title.Size = UDim2.new(0, 200, 0, 23)
-    Title.Font = Enum.Font.GothamBold
-    Title.Text = text
-    Title.TextColor3 = Color3.fromRGB(255, 255, 255)
-    Title.TextSize = 12.000
-    Title.TextXAlignment = Enum.TextXAlignment.Left
+    -- ScriptHub Title (Bigger, Bold)
+local ScriptHubTitle = Instance.new("TextLabel")
+ScriptHubTitle.Name = "ScriptHubTitle"
+ScriptHubTitle.Parent = Main
+ScriptHubTitle.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+ScriptHubTitle.BackgroundTransparency = 1.000
+ScriptHubTitle.Position = UDim2.new(0.033, 0, 0.03, 0) -- Adjust position
+ScriptHubTitle.Size = UDim2.new(0, 250, 0, 25)  -- Bigger size
+ScriptHubTitle.Font = Enum.Font.GothamBold
+ScriptHubTitle.Text = scriptHubName
+ScriptHubTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+ScriptHubTitle.TextSize = 16  -- Bigger font
+ScriptHubTitle.TextXAlignment = Enum.TextXAlignment.Left
+
+-- Developer Name (Smaller, Gray, Smooth Font)
+local DeveloperName = Instance.new("TextLabel")
+DeveloperName.Name = "DeveloperName"
+DeveloperName.Parent = Main
+DeveloperName.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+DeveloperName.BackgroundTransparency = 1.000
+DeveloperName.Position = UDim2.new(0.033, 0, 0.07, 0)  -- Below ScriptHub name
+DeveloperName.Size = UDim2.new(0, 250, 0, 18)
+DeveloperName.Font = Enum.Font.Gotham  -- Smoother font
+DeveloperName.Text = "- " .. devName
+DeveloperName.TextColor3 = Color3.fromRGB(180, 180, 180)  -- Gray color
+DeveloperName.TextSize = 12
+DeveloperName.TextXAlignment = Enum.TextXAlignment.Left
+
 
     DragFrame.Name = "DragFrame"
     DragFrame.Parent = Main
