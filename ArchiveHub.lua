@@ -1,24 +1,9 @@
--- Load UI Library
-local lib = loadstring(game:HttpGet("https://raw.githubusercontent.com/exvhoria/ArchiveHub/main/scriptui.txt"))()
-
--- Basic Info
+local ui = loadstring(game:HttpGet("https://raw.githubusercontent.com/exvhoria/ArchiveHub/main/scriptui.txt"))()
 local scriptHubName = "ArchiveHub"
 local devName = "GhosttedXV"
-local gameName = gameName or "Unknown Game"
+local win = lib:Window(scriptHubName .., devName, Color3.fromRGB(44, 120, 224), Enum.KeyCode.RightControl)
 
--- Window Setup
-local win = lib:Window(scriptHubName .. " || " .. gameName, devName, Color3.fromRGB(44, 120, 224), Enum.KeyCode.RightControl)
-
--- 🌟 Utility Functions 🌟 --
-local function notify(title, message)
-    lib:Notification(title, message, "OK")
-end
-
-local function getLocalPlayer()
-    return game.Players.LocalPlayer
-end
-
--- 🌟 ESP System 🌟 --
+-- Function:ESP --
 local espEnabled = false
 local espParts = {}
 local espConnection
@@ -70,66 +55,22 @@ local function toggleESP(state)
     end
 end
 
--- 🌟 UI Tabs 🌟 --
-local mainTab = win:Tab("Main")
-local playerTab = win:Tab("Player Settings")
-local espTab = win:Tab("ESP Settings")
-local settingsTab = win:Tab("Settings")
+-- TAB
+local MainTab = window:Tab("Tab Main")
+local Visual = window:Tab("Tab Visual")
+local Vombat = window:Tab("Tab Combat")
+local LocalPlayer = window:Tab("Tab LocalPlayer")
+local Settings = window:Tab("UI Settings")
 
--- 🌟 Main Tab 🌟 --
-mainTab:Label("Welcome to ArchiveHub!")
-mainTab:Label("Recent Updates:\n- ESP Bones\n- Fullbright Removed\n- Added Noclip")
-mainTab:Button("Show Notification", function()
-    notify("Hello!", "This is a test notification.")
+-- MainTab Content
+MainTab:Label("Welcome to ArchiveHub!")
+MainTab:Label("Recent Updates:\n- ESP Bones\n- Fullbright Removed\n- Added Noclip")
+MainTab:Button("Button", function()
+    lib:Notification("Check Version", "ArchiveHub Version: V1", "OK")
 end)
 
--- 🌟 Player Settings 🌟 --
-playerTab:Slider("Walk Speed", 16, 100, 16, function(speed)
-    local player = getLocalPlayer()
-    if player and player.Character and player.Character:FindFirstChild("Humanoid") then
-        player.Character.Humanoid.WalkSpeed = speed
-    end
-end)
 
-playerTab:Slider("Jump Power", 50, 200, 50, function(jumpPower)
-    local player = getLocalPlayer()
-    if player and player.Character and player.Character:FindFirstChild("Humanoid") then
-        player.Character.Humanoid.UseJumpPower = true
-        player.Character.Humanoid.JumpPower = jumpPower
-    end
-end)
-
-playerTab:Toggle("No Clip (Walk Through Walls)", false, function(enabled)
-    local player = getLocalPlayer()
-    local humanoidRootPart = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
-    
-    if humanoidRootPart then
-        humanoidRootPart.CanCollide = not enabled
-
-        local function toggleNoClip()
-            for _, part in pairs(player.Character:GetDescendants()) do
-                if part:IsA("BasePart") then
-                    part.CanCollide = not enabled
-                end
-            end
-        end
-
-        if enabled then
-            game:GetService("RunService").Stepped:Connect(toggleNoClip)
-        end
-    end
-end)
-
--- 🌟 ESP Settings 🌟 --
+-- Visual Content
 espTab:Toggle("ESP Bones", false, function(state)
     toggleESP(state)
-end)
-
--- 🌟 UI Settings 🌟 --
-settingsTab:Colorpicker("Change UI Color", Color3.fromRGB(44, 120, 224), function(color)
-    lib:ChangePresetColor(Color3.fromRGB(color.R * 255, color.G * 255, color.B * 255))
-end)
-
-settingsTab:Bind("Toggle UI", Enum.KeyCode.RightShift, function()
-    print("UI Toggled!")
 end)
