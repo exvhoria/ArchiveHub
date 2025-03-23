@@ -1561,6 +1561,7 @@ TitleLabel.RichText = true  -- Enable rich text formatting
             Label.BackgroundColor3 = Color3.fromRGB(34, 34, 34)
             Label.Size = UDim2.new(0, 363, 0, 42)
             Label.TextWrapped = true
+            Label.TextYAlignment = Enum.TextYAlignment.Top -- Align text to the top
             Label.AutoButtonColor = false
             Label.Font = Enum.Font.SourceSans
             Label.Text = ""
@@ -1573,7 +1574,7 @@ TitleLabel.RichText = true  -- Enable rich text formatting
             end)
             
             LabelCorner.CornerRadius = UDim.new(0, 5)
-            LabelCorner.Name = "ButtonCorner"
+            LabelCorner.Name = "LabelCorner"
             LabelCorner.Parent = Label
 
             LabelTitle.Name = "ButtonTitle"
