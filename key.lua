@@ -37,12 +37,12 @@ StatusLabel.Parent = Frame
 StatusLabel.Size = UDim2.new(0, 280, 0, 30)
 StatusLabel.Position = UDim2.new(0.5, -140, 0.8, 0)
 StatusLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-StatusLabel.Text = "🔹 Visit the link below to get your key:"
+StatusLabel.Text = "Open your browser and paste the link on the clipboard!"
 StatusLabel.TextScaled = true
 StatusLabel.BackgroundTransparency = 1
 
 print("🔹 Visit the link below to generate your key:")
-print(api_url .. "?action=generate&user_id=" .. user_id .. "&hwid=" .. hwid)
+setclipboard(api_url .. "?action=generate&user_id=" .. user_id .. "&hwid=" .. hwid)
 
 local function check_key()
     local key = TextBox.Text
