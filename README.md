@@ -1,5 +1,4 @@
-# UI Library Usage Guide
-
+# Vape by Dawid Script UI Revamp Guide
 This UI library helps you create a simple UI in Roblox using Lua. It loads dynamically from an external file.
 
 ## How to Load the UI
