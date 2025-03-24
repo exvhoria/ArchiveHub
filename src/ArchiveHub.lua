@@ -1,5 +1,5 @@
 local gameScripts = {
-    [70503660100467] = "loadstring(game:HttpGet('https://raw.githubusercontent.com/exvhoria/ArchiveHub/main/src/70503660100467.lua))()"
+    [70503660100467] = "loadstring(game:HttpGet('https://raw.githubusercontent.com/exvhoria/ArchiveHub/main/src/70503660100467.lua'))()"
 }
 
 local function createDraggableLogUI(supportedGames)
@@ -16,6 +16,7 @@ local function createDraggableLogUI(supportedGames)
 
     local title = Instance.new("TextLabel")
     title.Size = UDim2.new(1, 0, 0, 30)
+    title.Position = UDim2.new(0, 0, 0, 0)
     title.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
     title.Text = "Supported Games"
     title.Font = Enum.Font.Gotham
@@ -34,7 +35,9 @@ local function createDraggableLogUI(supportedGames)
     textLabel.Text = "Supported Games:\n" .. supportedGames
     textLabel.Parent = frame
 
+    -- Dragging functionality
     local dragging, dragInput, dragStart, startPos
+
     local function update(input)
         local delta = input.Position - dragStart
         frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
@@ -82,12 +85,12 @@ if gameScripts[currentGameId] then
 else
     local supportedGames = ""
     for gameId, _ in pairs(gameScripts) do
-        local success, gameName = pcall(function()
-            return game:GetService("MarketplaceService"):GetProductInfo(gameId).Name
+        local success, gameInfo = pcall(function()
+            return game:GetService("MarketplaceService"):GetProductInfo(gameId)
         end)
         
-        if success then
-            supportedGames = supportedGames .. "- " .. gameName .. "\n"
+        if success and gameInfo then
+            supportedGames = supportedGames .. "- " .. gameInfo.Name .. " (ID: " .. gameId .. ")\n"
         else
             supportedGames = supportedGames .. "- Unknown Game (ID: " .. gameId .. ")\n"
         end
