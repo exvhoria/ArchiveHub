@@ -191,6 +191,7 @@ end)
     TitleLabel.BackgroundTransparency = 1.000
     TitleLabel.Position = UDim2.new(0.033, 0, 0.03, 0)
     TitleLabel.Size = UDim2.new(0, 400, 0, 25)
+    TitleLabel.Font = Enum.Font.GothamBold
     TitleLabel.Text = scriptHubName .. " - " .. devName
     TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
     TitleLabel.TextSize = 16
