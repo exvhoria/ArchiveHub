@@ -56,10 +56,39 @@ local function toggleESP(state)
     end
 end
 
+-- Function: Fullbright Toggle --
+local fullbrightEnabled = false
+local lighting = game:GetService("Lighting")
+
+local function toggleFullbright(state)
+    fullbrightEnabled = state
+
+    if fullbrightEnabled then
+        lighting.GlobalShadows = false
+        lighting.Brightness = 2
+        lighting.Ambient = Color3.new(1, 1, 1)
+        lighting.OutdoorAmbient = Color3.new(1, 1, 1)
+        lighting.Changed:Connect(function()
+            if fullbrightEnabled then
+                lighting.GlobalShadows = false
+                lighting.Brightness = 2
+                lighting.Ambient = Color3.new(1, 1, 1)
+                lighting.OutdoorAmbient = Color3.new(1, 1, 1)
+            end
+        end)
+    else
+        lighting.GlobalShadows = true
+        lighting.Brightness = 1
+        lighting.Ambient = Color3.new(0, 0, 0)
+        lighting.OutdoorAmbient = Color3.new(0.5, 0.5, 0.5)
+    end
+end
+
 -- Creating Tabs
 local MainTab = window:Tab("Main")
 local Visual = window:Tab("Visual")
 local Combat = window:Tab("Combat")
+local Teleport = window:Tab("Teleport")
 local LocalPlayer = window:Tab("Local Player")
 local Settings = window:Tab("UI Settings")
 
@@ -71,6 +100,10 @@ MainTab:Button("Check Version", function()
 end)
 
 -- Visual Tab Content
+Visual:Toggle("Fullbright", false, function(state)
+    toggleFullbright(state)
+end)
+
 Visual:Toggle("ESP Bones", false, function(state)
     toggleESP(state)
 end)
