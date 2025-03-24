@@ -2,14 +2,14 @@ local gameScripts = {
     [70503660100467] = "loadstring(game:HttpGet('https://raw.githubusercontent.com/exvhoria/ArchiveHub/main/src/70503660100467.lua'))()"
 }
 
-local function createDraggableLogUI(supportedGames)
+local function createGameListUI(supportedGames)
     local screenGui = Instance.new("ScreenGui")
-    screenGui.Name = "LogUI"
+    screenGui.Name = "GameListUI"
     screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
     
     local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(0, 300, 0, 150)
-    frame.Position = UDim2.new(0.5, -150, 0.5, -75)
+    frame.Size = UDim2.new(0, 300, 0, 200)
+    frame.Position = UDim2.new(0.5, -150, 0.5, -100)
     frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
     frame.BorderSizePixel = 0
     frame.Parent = screenGui
@@ -25,7 +25,7 @@ local function createDraggableLogUI(supportedGames)
     title.Parent = frame
 
     local textLabel = Instance.new("TextLabel")
-    textLabel.Size = UDim2.new(1, -10, 1, -40)
+    textLabel.Size = UDim2.new(1, -10, 1, -70)
     textLabel.Position = UDim2.new(0, 5, 0, 35)
     textLabel.BackgroundTransparency = 1
     textLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -35,66 +35,45 @@ local function createDraggableLogUI(supportedGames)
     textLabel.Text = "Supported Games:\n" .. supportedGames
     textLabel.Parent = frame
 
-    -- Dragging functionality
-    local dragging, dragInput, dragStart, startPos
+    local executeButton = Instance.new("TextButton")
+    executeButton.Size = UDim2.new(0, 200, 0, 30)
+    executeButton.Position = UDim2.new(0.5, -100, 1, -40)
+    executeButton.BackgroundColor3 = Color3.fromRGB(70, 130, 180)
+    executeButton.Text = "Execute Script"
+    executeButton.Font = Enum.Font.Gotham
+    executeButton.TextSize = 18
+    executeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    executeButton.Parent = frame
 
-    local function update(input)
-        local delta = input.Position - dragStart
-        frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-    end
-
-    frame.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            dragging = true
-            dragStart = input.Position
-            startPos = frame.Position
-
-            input.Changed:Connect(function()
-                if input.UserInputState == Enum.UserInputState.End then
-                    dragging = false
-                end
+    executeButton.MouseButton1Click:Connect(function()
+        local currentGameId = game.GameId
+        if gameScripts[currentGameId] then
+            local success, err = pcall(function()
+                loadstring(gameScripts[currentGameId])()
             end)
-        end
-    end)
 
-    frame.InputChanged:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseMovement then
-            dragInput = input
-        end
-    end)
-
-    game:GetService("UserInputService").InputChanged:Connect(function(input)
-        if input == dragInput and dragging then
-            update(input)
-        end
-    end)
-end
-
-local currentGameId = game.GameId
-
-if gameScripts[currentGameId] then
-    local success, err = pcall(function()
-        loadstring(gameScripts[currentGameId])()
-    end)
-    
-    if not success then
-        warn("Failed to execute script for Game ID:", currentGameId, "Error:", err)
-    else
-        print("Script executed successfully for Game ID:", currentGameId)
-    end
-else
-    local supportedGames = ""
-    for gameId, _ in pairs(gameScripts) do
-        local success, gameInfo = pcall(function()
-            return game:GetService("MarketplaceService"):GetProductInfo(gameId)
-        end)
-        
-        if success and gameInfo then
-            supportedGames = supportedGames .. "- " .. gameInfo.Name .. " (ID: " .. gameId .. ")\n"
+            if success then
+                print("Script executed successfully for Game ID:", currentGameId)
+            else
+                warn("Failed to execute script. Error:", err)
+            end
         else
-            supportedGames = supportedGames .. "- Unknown Game (ID: " .. gameId .. ")\n"
+            warn("No script found for this Game ID:", currentGameId)
         end
-    end
-
-    createDraggableLogUI(supportedGames)
+    end)
 end
+
+local supportedGames = ""
+for gameId, _ in pairs(gameScripts) do
+    local success, gameInfo = pcall(function()
+        return game:GetService("MarketplaceService"):GetProductInfo(gameId)
+    end)
+
+    if success and gameInfo then
+        supportedGames = supportedGames .. "- " .. gameInfo.Name .. " (ID: " .. gameId .. ")\n"
+    else
+        supportedGames = supportedGames .. "- Unknown Game (ID: " .. gameId .. ")\n"
+    end
+end
+
+createGameListUI(supportedGames)
