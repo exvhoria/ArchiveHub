@@ -537,13 +537,13 @@ end)
     ButtonTitle.TextSize = 14.000
     ButtonTitle.TextXAlignment = Enum.TextXAlignment.Left
 
-    -- Add Symbol (ImageLabel)
+    -- Add Symbol (ImageLabel) with Default Icon
     ButtonIcon.Name = "ButtonIcon"
     ButtonIcon.Parent = Button
     ButtonIcon.BackgroundTransparency = 1.000
     ButtonIcon.Size = UDim2.new(0, 20, 0, 20) -- Set icon size
     ButtonIcon.Position = UDim2.new(0.92, 0, 0.5, -10) -- Position on right side
-    ButtonIcon.Image = icon -- Use the given icon image
+    ButtonIcon.Image = icon or "rbxassetid://6031097225" -- Default icon (Change to your preferred asset ID)
 
     -- Hover Effects
     Button.MouseEnter:Connect(function()
@@ -1547,36 +1547,37 @@ end
         end
         
         function tabcontent:Label(text)
-            local Label = Instance.new("TextLabel")
-            local LabelCorner = Instance.new("UICorner")
-            local LabelPadding = Instance.new("UIPadding")
+    local Label = Instance.new("TextLabel")
+    local LabelCorner = Instance.new("UICorner")
+    local LabelPadding = Instance.new("UIPadding")
 
-            Label.Name = "Label"
-            Label.Parent = Tab
-            Label.BackgroundColor3 = Color3.fromRGB(34, 34, 34)
-            Label.Size = UDim2.new(0, 363, 0, 42)
-            Label.TextWrapped = true
-            Label.TextYAlignment = Enum.TextYAlignment.Top
-            Label.Font = Enum.Font.Gotham
-            Label.Text = text
-            Label.TextColor3 = Color3.fromRGB(255, 255, 255)
-            Label.TextSize = 14
-            Label.TextXAlignment = Enum.TextXAlignment.Left
-            Label.ClipsDescendants = true
-            Label.AutomaticSize = Enum.AutomaticSize.Y
+    Label.Name = "Label"
+    Label.Parent = Tab
+    Label.BackgroundColor3 = Color3.fromRGB(34, 34, 34)
+    Label.Size = UDim2.new(0, 363, 0, 42)
+    Label.TextWrapped = true
+    Label.TextYAlignment = Enum.TextYAlignment.Top
+    Label.Font = Enum.Font.Gotham
+    Label.Text = text
+    Label.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Label.TextSize = 14
+    Label.TextXAlignment = Enum.TextXAlignment.Left
+    Label.ClipsDescendants = true
+    Label.AutomaticSize = Enum.AutomaticSize.Y
 
-            LabelPadding.Parent = Label
-            LabelPadding.PaddingTop = UDim.new(0, 5)
-            LabelPadding.PaddingBottom = UDim.new(0, 5) 
-            LabelPadding.PaddingLeft = UDim.new(0, 14) 
-            LabelPadding.PaddingRight = UDim.new(0, 10)
+    LabelPadding.Parent = Label
+    LabelPadding.PaddingTop = UDim.new(0, 5)
+    LabelPadding.PaddingBottom = UDim.new(0, 5) 
+    LabelPadding.PaddingLeft = UDim.new(0, 14) 
+    LabelPadding.PaddingRight = UDim.new(0, 10)
 
-            LabelCorner.CornerRadius = UDim.new(0, 5)
-            LabelCorner.Name = "LabelCorner"
-            LabelCorner.Parent = Label
+    LabelCorner.CornerRadius = UDim.new(0, 5)
+    LabelCorner.Name = "LabelCorner"
+    LabelCorner.Parent = Label
 
-            Tab.CanvasSize = UDim2.new(0, 0, 0, TabLayout.AbsoluteContentSize.Y)
-        end
+    Tab.CanvasSize = UDim2.new(0, 0, 0, TabLayout.AbsoluteContentSize.Y)
+end
+        
         function tabcontent:Textbox(text, disapper, callback)
             local Textbox = Instance.new("Frame")
             local TextboxCorner = Instance.new("UICorner")
