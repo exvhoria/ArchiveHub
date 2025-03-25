@@ -509,6 +509,7 @@ end)
             local Button = Instance.new("TextButton")
             local ButtonCorner = Instance.new("UICorner")
             local ButtonTitle = Instance.new("TextLabel")
+            local ClickIcon = Instance.new("ImageLabel")
 
             Button.Name = "Button"
             Button.Parent = Tab
@@ -535,6 +536,29 @@ end)
             ButtonTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
             ButtonTitle.TextSize = 14.000
             ButtonTitle.TextXAlignment = Enum.TextXAlignment.Left
+
+            ClickIcon.Name = "ClickIcon"
+            ClickIcon.Parent = Button
+            ClickIcon.BackgroundTransparency = 1
+            ClickIcon.Size = UDim2.new(0, 20, 0, 20)
+            ClickIcon.Position = UDim2.new(0.92, 0, 0.5, -10)
+            ClickIcon.AnchorPoint = Vector2.new(0.5, 0.5)
+            ClickIcon.Image = "rbxassetid://105845194767795" 
+            ClickIcon.ImageColor3 = Color3.fromHSV(lib.RainbowColorValue, 1, 1)
+
+            coroutine.wrap(function()
+                while wait() do
+                    ClickIcon.ImageColor3 = Color3.fromHSV(lib.RainbowColorValue, 1, 1)
+                end
+            end)()
+
+            Button.MouseButton1Click:Connect(function()
+                pcall(callback)
+            end)
+
+            Tab.CanvasSize = UDim2.new(0, 0, 0, TabLayout.AbsoluteContentSize.Y)
+        end
+
 
             Button.MouseEnter:Connect(
                 function()
@@ -1542,35 +1566,32 @@ end)
         function tabcontent:Label(text)
     local Label = Instance.new("TextLabel")
     local LabelCorner = Instance.new("UICorner")
-    local LabelPadding = Instance.new("UIPadding") -- NEW: Add padding
+    local LabelPadding = Instance.new("UIPadding")
 
     Label.Name = "Label"
     Label.Parent = Tab
     Label.BackgroundColor3 = Color3.fromRGB(34, 34, 34)
-    Label.Size = UDim2.new(0, 363, 0, 42) -- Initial size
-    Label.TextWrapped = true -- Enable multi-line
-    Label.TextYAlignment = Enum.TextYAlignment.Top -- Align text to the top
+    Label.Size = UDim2.new(0, 363, 0, 42)
+    Label.TextWrapped = true
+    Label.TextYAlignment = Enum.TextYAlignment.Top
     Label.Font = Enum.Font.Gotham
     Label.Text = text
     Label.TextColor3 = Color3.fromRGB(255, 255, 255)
     Label.TextSize = 14
     Label.TextXAlignment = Enum.TextXAlignment.Left
-    Label.ClipsDescendants = true -- Prevents text from overflowing outside
-    Label.AutomaticSize = Enum.AutomaticSize.Y -- NEW: Automatically resize height
+    Label.ClipsDescendants = true
+    Label.AutomaticSize = Enum.AutomaticSize.Y
 
-    -- NEW: Add padding so text does not touch edges
     LabelPadding.Parent = Label
-    LabelPadding.PaddingTop = UDim.new(0, 5) -- 5px padding from top
-    LabelPadding.PaddingBottom = UDim.new(0, 5) -- 5px padding from bottom
-    LabelPadding.PaddingLeft = UDim.new(0, 14) -- 10px padding from left
-    LabelPadding.PaddingRight = UDim.new(0, 10) -- 10px padding from right
+    LabelPadding.PaddingTop = UDim.new(0, 5)
+    LabelPadding.PaddingBottom = UDim.new(0, 5) 
+    LabelPadding.PaddingLeft = UDim.new(0, 14) 
+    LabelPadding.PaddingRight = UDim.new(0, 10)
 
-    -- Apply UI corner styling
     LabelCorner.CornerRadius = UDim.new(0, 5)
     LabelCorner.Name = "LabelCorner"
     LabelCorner.Parent = Label
 
-    -- Ensure the tab layout updates properly
     Tab.CanvasSize = UDim2.new(0, 0, 0, TabLayout.AbsoluteContentSize.Y)
 end
         
