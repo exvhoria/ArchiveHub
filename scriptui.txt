@@ -509,7 +509,7 @@ end)
             local Button = Instance.new("TextButton")
             local ButtonCorner = Instance.new("UICorner")
             local ButtonTitle = Instance.new("TextLabel")
-            local ClickIcon = Instance.new("ImageLabel")
+            local ClickIcon = Instance.new("ImageLabel") -- Create image label
 
             Button.Name = "Button"
             Button.Parent = Tab
@@ -529,7 +529,7 @@ end)
             ButtonTitle.Parent = Button
             ButtonTitle.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
             ButtonTitle.BackgroundTransparency = 1.000
-            ButtonTitle.Position = UDim2.new(0.0358126722, 0, 0, 0)
+            ButtonTitle.Position = UDim2.new(0.035, 0, 0, 0)
             ButtonTitle.Size = UDim2.new(0, 187, 0, 42)
             ButtonTitle.Font = Enum.Font.Gotham
             ButtonTitle.Text = text
@@ -542,10 +542,18 @@ end)
             ClickIcon.Parent = Button
             ClickIcon.BackgroundTransparency = 1
             ClickIcon.Size = UDim2.new(0, 20, 0, 20)
-            ClickIcon.Position = UDim2.new(0.92, 0, 0.5, -10)
+            ClickIcon.Position = UDim2.new(0.92, 0, 0.5, -10) -- Adjust position
             ClickIcon.AnchorPoint = Vector2.new(0.5, 0.5)
-            ClickIcon.Image = "rbxassetid://105845194767795"
+            ClickIcon.Image = "rbxassetid://105845194767795" -- Replace with your Asset ID
 
+            Button.MouseButton1Click:Connect(
+                function()
+                    pcall(callback)
+                end
+            )
+
+            Tab.CanvasSize = UDim2.new(0, 0, 0, TabLayout.AbsoluteContentSize.Y)
+        end
 
             Button.MouseEnter:Connect(
                 function()
