@@ -505,55 +505,61 @@ end)
             end
         )
         local tabcontent = {}
-        function tabcontent:Button(text, callback)
-            local Button = Instance.new("TextButton")
-            local ButtonCorner = Instance.new("UICorner")
-            local ButtonTitle = Instance.new("TextLabel")
-            local ClickIcon = Instance.new("ImageLabel") -- Create image label
+ function tabcontent:Button(text, callback)
+    local Button = Instance.new("TextButton")
+    local ButtonCorner = Instance.new("UICorner")
+    local ButtonTitle = Instance.new("TextLabel")
+    local ClickIcon = Instance.new("ImageLabel") -- Click icon
 
-            Button.Name = "Button"
-            Button.Parent = Tab
-            Button.BackgroundColor3 = Color3.fromRGB(34, 34, 34)
-            Button.Size = UDim2.new(0, 363, 0, 42)
-            Button.AutoButtonColor = false
-            Button.Font = Enum.Font.SourceSans
-            Button.Text = ""
-            Button.TextColor3 = Color3.fromRGB(0, 0, 0)
-            Button.TextSize = 14.000
+    Button.Name = "Button"
+    Button.Parent = Tab
+    Button.BackgroundColor3 = Color3.fromRGB(34, 34, 34)
+    Button.Size = UDim2.new(0, 363, 0, 42)
+    Button.AutoButtonColor = false
+    Button.Font = Enum.Font.SourceSans
+    Button.Text = ""
+    Button.TextColor3 = Color3.fromRGB(0, 0, 0)
+    Button.TextSize = 14.000
 
-            ButtonCorner.CornerRadius = UDim.new(0, 5)
-            ButtonCorner.Name = "ButtonCorner"
-            ButtonCorner.Parent = Button
+    ButtonCorner.CornerRadius = UDim.new(0, 5)
+    ButtonCorner.Parent = Button
 
-            ButtonTitle.Name = "ButtonTitle"
-            ButtonTitle.Parent = Button
-            ButtonTitle.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-            ButtonTitle.BackgroundTransparency = 1.000
-            ButtonTitle.Position = UDim2.new(0.035, 0, 0, 0)
-            ButtonTitle.Size = UDim2.new(0, 187, 0, 42)
-            ButtonTitle.Font = Enum.Font.Gotham
-            ButtonTitle.Text = text
-            ButtonTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
-            ButtonTitle.TextSize = 14.000
-            ButtonTitle.TextXAlignment = Enum.TextXAlignment.Left
+    ButtonTitle.Name = "ButtonTitle"
+    ButtonTitle.Parent = Button
+    ButtonTitle.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    ButtonTitle.BackgroundTransparency = 1.000
+    ButtonTitle.Position = UDim2.new(0.05, 0, 0, 0) -- Adjusted for spacing
+    ButtonTitle.Size = UDim2.new(0.8, 0, 1, 0)
+    ButtonTitle.Font = Enum.Font.Gotham
+    ButtonTitle.Text = text
+    ButtonTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+    ButtonTitle.TextSize = 14.000
+    ButtonTitle.TextXAlignment = Enum.TextXAlignment.Left
 
-            -- Add Click Icon (Roblox Asset)
-            ClickIcon.Name = "ClickIcon"
-            ClickIcon.Parent = Button
-            ClickIcon.BackgroundTransparency = 1
-            ClickIcon.Size = UDim2.new(0, 20, 0, 20)
-            ClickIcon.Position = UDim2.new(0.92, 0, 0.5, -10) -- Adjust position
-            ClickIcon.AnchorPoint = Vector2.new(0.5, 0.5)
-            ClickIcon.Image = "rbxassetid://105845194767795" -- Replace with your Asset ID
+    -- ✅ Click Symbol Fix
+    ClickIcon.Name = "ClickIcon"
+    ClickIcon.Parent = Button
+    ClickIcon.BackgroundTransparency = 1
+    ClickIcon.Size = UDim2.new(0, 20, 0, 20)
+    ClickIcon.Position = UDim2.new(0.92, 0, 0.5, -10) -- Adjusted for correct placement
+    ClickIcon.AnchorPoint = Vector2.new(0.5, 0.5)
 
-            Button.MouseButton1Click:Connect(
-                function()
-                    pcall(callback)
-                end
-            )
+    -- ✅ Test with a known asset first
+    ClickIcon.Image = "rbxassetid://6031094674" -- Change this to your asset ID after testing
+    ClickIcon.ImageTransparency = 0 -- Ensure it's visible
 
-            Tab.CanvasSize = UDim2.new(0, 0, 0, TabLayout.AbsoluteContentSize.Y)
+    -- ✅ Force asset load in case of delay
+    game:GetService("ContentProvider"):PreloadAsync({ClickIcon})
+
+    Button.MouseButton1Click:Connect(
+        function()
+            pcall(callback)
         end
+    )
+
+    Tab.CanvasSize = UDim2.new(0, 0, 0, TabLayout.AbsoluteContentSize.Y)
+end
+
 
             Button.MouseEnter:Connect(
                 function()
@@ -575,14 +581,6 @@ end)
                 end
             )
 
-            Button.MouseButton1Click:Connect(
-                function()
-                    pcall(callback)
-                end
-            )
-
-            Tab.CanvasSize = UDim2.new(0, 0, 0, TabLayout.AbsoluteContentSize.Y)
-        end
         function tabcontent:Toggle(text,default, callback)
             local toggled = false
 
