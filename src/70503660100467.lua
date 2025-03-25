@@ -1,5 +1,5 @@
 local ui = loadstring(game:HttpGet("https://raw.githubusercontent.com/exvhoria/ArchiveHub/main/scriptui.txt"))()
-local window = ui:Window("ArchiveHub", "GhosttedXV", Color3.fromRGB(44, 120, 224), Enum.KeyCode.RightControl)
+local window = ui:Window("ArchiveHub", "Ghostted", Color3.fromRGB(44, 120, 224), Enum.KeyCode.RightControl)
 
 local MainTab = window:Tab("Main")
 MainTab:Label("Welcome to ArchiveHub!")
@@ -14,6 +14,6 @@ local function ArchiveHubTP()
     player.Character:PivotTo(CFrame.new(303, 658, 203))
 end
 
-MainTab:Button("CFrame TP to Finish", "rbxassetid://105845194767795", function()
+MainTab:Button("TP to Finish", function()
     ArchiveHubTP()
 end)
