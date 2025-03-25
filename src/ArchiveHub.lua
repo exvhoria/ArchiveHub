@@ -1,12 +1,18 @@
-local player = game.Players.LocalPlayer
+local player = game:GetService("Players").LocalPlayer
 local camera = game.Workspace.CurrentCamera
 local runService = game:GetService("RunService")
 local uiService = game:GetService("StarterGui")
 
+-- Ensure LocalPlayer is loaded
+while not player do
+    wait()
+    player = game:GetService("Players").LocalPlayer
+end
+
 -- SETTINGS
 local SCREEN_SIZE = camera.ViewportSize
-local CROSSHAIR_POSITION = UDim2.new(0.5, 0, 0.5, 0) -- Default crosshair position
-local FOV_OFFSET = UDim2.new(0.05, 0, 0.05, 0) -- Offset for FOV circle
+local FOV_SIZE = UDim2.new(0.05, 0, 0.05, 0) -- Set relative size
+local FOV_POSITION = UDim2.new(0.5, -SCREEN_SIZE.X * 0.025, 0.5, -SCREEN_SIZE.Y * 0.025) -- Centered to crosshair
 
 -- Function to create UI elements
 local function createUI()
@@ -36,18 +42,18 @@ local function createUI()
     textLabel.Font = Enum.Font.SourceSansBold
     textLabel.Text = "Searching for NPCs..."
     
-    -- Create a FOV Circle centered on the crosshair
+    -- Create a FOV Circle
     local fovFrame = Instance.new("Frame")
     fovFrame.Parent = screenGui
-    fovFrame.Size = UDim2.new(0, SCREEN_SIZE.X * 0.05, 0, SCREEN_SIZE.Y * 0.05) -- Fixed size in pixels
-    fovFrame.Position = UDim2.new(CROSSHAIR_POSITION.X.Scale - (FOV_OFFSET.X.Scale / 2), 0, CROSSHAIR_POSITION.Y.Scale - (FOV_OFFSET.Y.Scale / 2), 0)
+    fovFrame.Size = FOV_SIZE
+    fovFrame.Position = FOV_POSITION
     fovFrame.BackgroundColor3 = Color3.new(0, 0, 0) -- Black Transparent
     fovFrame.BackgroundTransparency = 0.4 -- 40% Transparent
     fovFrame.ZIndex = 2
     fovFrame.BorderSizePixel = 2 -- White Outline
     fovFrame.BorderColor3 = Color3.new(1, 1, 1)
 
-    -- Fix: Make FOV Circle Rounded
+    -- Fix: Make FOV Circle Shaped
     local corner = Instance.new("UICorner")
     corner.CornerRadius = UDim.new(1, 0) -- Makes it a perfect circle
     corner.Parent = fovFrame
@@ -72,6 +78,21 @@ end
 -- Initialize UI
 local screenGui, textLabel = createUI()
 
+-- Function to find NPCs (excluding players)
+local function getAllNPCs()
+    local npcs = {}
+
+    for _, obj in pairs(workspace:GetDescendants()) do
+        if obj:IsA("Model") and obj:FindFirstChild("Humanoid") and obj:FindFirstChild("HumanoidRootPart") then
+            if not obj:FindFirstChildOfClass("Player") then -- Ensure it's not a player
+                table.insert(npcs, obj)
+            end
+        end
+    end
+
+    return npcs
+end
+
 -- Function to get the nearest NPC inside FOV circle
 local function getNearestNPC()
     local nearestNPC = nil
@@ -80,26 +101,20 @@ local function getNearestNPC()
     
     if not humanoidRootPart then return nil, nil end -- Prevent errors when player dies
 
-    for _, npc in ipairs(workspace:GetChildren()) do
-        if npc:IsA("Model") and npc:FindFirstChild("Humanoid") and npc:FindFirstChild("HumanoidRootPart") then
-            local npcRoot = npc:FindFirstChild("HumanoidRootPart")
-            if npcRoot then
-                -- Convert NPC world position to screen position
-                local screenPosition, onScreen = camera:WorldToViewportPoint(npcRoot.Position)
-                local screenVector = Vector2.new(screenPosition.X, screenPosition.Y)
-                local fovCenter = Vector2.new(SCREEN_SIZE.X * CROSSHAIR_POSITION.X.Scale, SCREEN_SIZE.Y * CROSSHAIR_POSITION.Y.Scale)
+    for _, npc in ipairs(getAllNPCs()) do
+        local npcRoot = npc:FindFirstChild("HumanoidRootPart")
+        if npcRoot then
+            -- Convert NPC world position to screen position
+            local screenPosition, onScreen = camera:WorldToViewportPoint(npcRoot.Position)
 
-                -- Check if NPC is inside the FOV circle
-                local screenDistance = (screenVector - fovCenter).Magnitude
-                local fovRadius = (FOV_OFFSET.X.Scale * SCREEN_SIZE.X) / 2 -- Calculate actual pixel radius
-                
-                if onScreen and screenDistance < fovRadius then
-                    local distance = (npcRoot.Position - humanoidRootPart.Position).Magnitude
+            -- Check if NPC is inside the FOV circle
+            local screenDistance = (Vector2.new(screenPosition.X, screenPosition.Y) - Vector2.new(SCREEN_SIZE.X / 2, SCREEN_SIZE.Y / 2)).Magnitude
+            if onScreen and screenDistance < (SCREEN_SIZE.X * 0.025) then
+                local distance = (npcRoot.Position - humanoidRootPart.Position).Magnitude
 
-                    if distance < shortestDistance then
-                        shortestDistance = distance
-                        nearestNPC = npc
-                    end
+                if distance < shortestDistance then
+                    shortestDistance = distance
+                    nearestNPC = npc
                 end
             end
         end
