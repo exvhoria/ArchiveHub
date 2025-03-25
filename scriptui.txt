@@ -543,7 +543,7 @@ end)
     ButtonIcon.BackgroundTransparency = 1.000
     ButtonIcon.Size = UDim2.new(0, 20, 0, 20) -- Set icon size
     ButtonIcon.Position = UDim2.new(0.92, 0, 0.5, -10) -- Position on right side
-    ButtonIcon.Image = icon or "rbxassetid://6031097225" -- Default icon (Change to your preferred asset ID)
+    ButtonIcon.Image = tostring(icon or "rbxassetid://6031097225")
 
     -- Hover Effects
     Button.MouseEnter:Connect(function()
