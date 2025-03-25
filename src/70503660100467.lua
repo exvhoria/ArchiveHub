@@ -14,6 +14,6 @@ local function ArchiveHubTP()
     player.Character:PivotTo(CFrame.new(303, 658, 203))
 end
 
-MainTab:Button("TP to Finish", function()
+MainTab:Button("CFrame TP to Finish", "rbxassetid://105845194767795", function()
     ArchiveHubTP()
 end)
