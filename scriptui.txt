@@ -544,7 +544,7 @@ end)
             ClickIcon.Size = UDim2.new(0, 20, 0, 20)
             ClickIcon.Position = UDim2.new(0.92, 0, 0.5, -10)
             ClickIcon.AnchorPoint = Vector2.new(0.5, 0.5)
-            ClickIcon.Image = "rbxassetid://YOUR_ASSET_ID_HERE"
+            ClickIcon.Image = "rbxassetid://105845194767795"
 
 
             Button.MouseEnter:Connect(
