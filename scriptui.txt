@@ -537,21 +537,6 @@ end)
             ButtonTitle.TextSize = 14.000
             ButtonTitle.TextXAlignment = Enum.TextXAlignment.Left
 
-            ClickIcon.Name = "ClickIcon"
-            ClickIcon.Parent = Button
-            ClickIcon.BackgroundTransparency = 1
-            ClickIcon.Size = UDim2.new(0, 20, 0, 20)
-            ClickIcon.Position = UDim2.new(0.92, 0, 0.5, -10)
-            ClickIcon.AnchorPoint = Vector2.new(0.5, 0.5)
-            ClickIcon.Image = "rbxassetid://105845194767795" 
-            ClickIcon.ImageColor3 = Color3.fromHSV(lib.RainbowColorValue, 1, 1)
-
-            coroutine.wrap(function()
-                while wait() do
-                    ClickIcon.ImageColor3 = Color3.fromHSV(lib.RainbowColorValue, 1, 1)
-                end
-            end)()
-
             Button.MouseButton1Click:Connect(function()
                 pcall(callback)
             end)
