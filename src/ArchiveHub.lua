@@ -11,8 +11,8 @@ end
 
 -- SETTINGS
 local SCREEN_SIZE = camera.ViewportSize
-local FOV_SIZE = UDim2.new(0.05, 0, 0.05, 0) -- Set relative size
-local FOV_POSITION = UDim2.new(0.5, -SCREEN_SIZE.X * 0.025, 0.5, -SCREEN_SIZE.Y * 0.025) -- Centered to crosshair
+local FOV_SIZE = UDim2.new(0.05, 0, 0.05, 0) -- 5% of the screen size
+local FOV_POSITION = UDim2.new(0.5, -((SCREEN_SIZE.X * 0.05) / 2), 0.5, -((SCREEN_SIZE.Y * 0.05) / 2)) -- Centered
 
 -- Function to create UI elements
 local function createUI()
@@ -34,49 +34,29 @@ local function createUI()
     textLabel.Parent = screenGui
     textLabel.Position = UDim2.new(0.5, -100, 0, 20)
     textLabel.Size = UDim2.new(0, 250, 0, 30)
-    textLabel.BackgroundColor3 = Color3.new(0, 0, 0) -- Solid Black Background
-    textLabel.BackgroundTransparency = 0.3 -- Slight Transparency
+    textLabel.BackgroundColor3 = Color3.new(0, 0, 0) -- Black Background
+    textLabel.BackgroundTransparency = 0.3 -- 30% Transparent
     textLabel.BorderSizePixel = 0
     textLabel.TextColor3 = Color3.new(1, 1, 1)
     textLabel.TextScaled = true
     textLabel.Font = Enum.Font.SourceSansBold
     textLabel.Text = "Searching for NPCs..."
-    
-    -- Create a FOV Circle
-    local fovFrame = Instance.new("Frame")
-    fovFrame.Parent = screenGui
-    fovFrame.Size = FOV_SIZE
-    fovFrame.Position = FOV_POSITION
-    fovFrame.BackgroundColor3 = Color3.new(0, 0, 0) -- Black Transparent
-    fovFrame.BackgroundTransparency = 0.4 -- 40% Transparent
-    fovFrame.ZIndex = 2
-    fovFrame.BorderSizePixel = 2 -- White Outline
-    fovFrame.BorderColor3 = Color3.new(1, 1, 1)
 
-    -- Fix: Make FOV Circle Shaped
-    local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(1, 0) -- Makes it a perfect circle
-    corner.Parent = fovFrame
+    -- Create a FOV Image instead of a circle
+    local fovImage = Instance.new("ImageLabel")
+    fovImage.Parent = screenGui
+    fovImage.Size = FOV_SIZE
+    fovImage.Position = FOV_POSITION
+    fovImage.Image = "rbxassetid://3570695787"
+    fovImage.BackgroundTransparency = 1 -- No background
+    fovImage.ImageTransparency = 0.5 -- 50% Transparent
+    fovImage.ZIndex = 2
 
-    -- Create an X button to close UI
-    local closeButton = Instance.new("TextButton")
-    closeButton.Parent = screenGui
-    closeButton.Position = UDim2.new(1, -50, 0, 20)
-    closeButton.Size = UDim2.new(0, 30, 0, 30)
-    closeButton.BackgroundColor3 = Color3.new(1, 0, 0)
-    closeButton.Text = "X"
-    closeButton.TextScaled = true
-    closeButton.TextColor3 = Color3.new(1, 1, 1)
-    closeButton.Font = Enum.Font.SourceSansBold
-    closeButton.MouseButton1Click:Connect(function()
-        screenGui:Destroy()
-    end)
-
-    return screenGui, textLabel
+    return screenGui, textLabel, fovImage
 end
 
 -- Initialize UI
-local screenGui, textLabel = createUI()
+local screenGui, textLabel, fovImage = createUI()
 
 -- Function to find NPCs (excluding players)
 local function getAllNPCs()
@@ -93,7 +73,7 @@ local function getAllNPCs()
     return npcs
 end
 
--- Function to get the nearest NPC inside FOV circle
+-- Function to get the nearest NPC inside FOV
 local function getNearestNPC()
     local nearestNPC = nil
     local shortestDistance = math.huge
@@ -149,5 +129,5 @@ end)
 
 -- Recreate UI after respawn
 player.CharacterAdded:Connect(function()
-    screenGui, textLabel = createUI()
+    screenGui, textLabel, fovImage = createUI()
 end)
