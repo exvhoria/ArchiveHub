@@ -1,4 +1,4 @@
-local ESP = loadstring(game:HttpGet("YOUR_SCRIPT_URL"))()
+local ESP = loadstring(game:HttpGet("https://raw.githubusercontent.com/exvhoria/ArchiveHub/refs/heads/main/src/ESP.lua"))()
 
 -- Configure
 ESP.Config.Box.Scale = 0.7 -- Smaller boxes
