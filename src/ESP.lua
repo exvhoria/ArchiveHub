@@ -1,4 +1,4 @@
--- Velocity ESP v2.1.1 - Fixed Box Size Calculation
+-- Velocity ESP v2.2 - Fixed Scaling & Visibility
 local ESP = {
     Config = {
         -- Master switches
@@ -20,7 +20,9 @@ local ESP = {
             Enabled = true,
             Thickness = 1,
             Filled = false,
-            Scale = 0.8 -- Fixed box size multiplier (0.8 = 80% of original size)
+            MinSize = Vector2.new(15, 25),  -- Minimum box size (far away)
+            MaxSize = Vector2.new(50, 80),   -- Maximum box size (close up)
+            ScaleFactor = 0.0005     
         },
         Tracer = {
             Enabled = true,
@@ -74,22 +76,18 @@ local function GetHealthColor(health, maxHealth)
 end
 
 -- Proper box size calculation (fixed)
-local function GetBoxSize(character)
+-- Fixed GetBoxSize function
+local function GetBoxSize(character, distance)
     local root = character:FindFirstChild("HumanoidRootPart")
-    local head = character:FindFirstChild("Head")
-    if not root or not head then return Vector2.new(50, 80) end
+    if not root then return ESP.Config.Box.MinSize end
     
-    -- Get world positions
-    local topPos = Vector3.new(0, head.Position.Y, 0)
-    local bottomPos = Vector3.new(0, root.Position.Y - (root.Size.Y/2), 0)
-    
-    -- Convert to screen space with safety checks
-    local topScreen, topVisible = Camera:WorldToViewportPoint(topPos)
-    local bottomScreen, bottomVisible = Camera:WorldToViewportPoint(bottomPos)
-    
-    if not (topVisible and bottomVisible) then
-        return Vector2.new(50, 80) -- Fallback size
-    end
+    -- Calculate size based on distance (inverse relationship)
+    local scale = math.clamp(1 - (distance * ESP.Config.Box.ScaleFactor), 0.1, 1)
+    return Vector2.new(
+        ESP.Config.Box.MinSize.X + (ESP.Config.Box.MaxSize.X - ESP.Config.Box.MinSize.X) * scale,
+        ESP.Config.Box.MinSize.Y + (ESP.Config.Box.MaxSize.Y - ESP.Config.Box.MinSize.Y) * scale
+    )
+end
     
     -- Calculate proper dimensions
     local screenHeight = math.abs(topScreen.Y - bottomScreen.Y)
@@ -102,6 +100,7 @@ local function GetBoxSize(character)
 end
 
 -- Main Rendering
+-- Updated UpdatePlayerESP function
 local function UpdatePlayerESP(player)
     if not ESP.Config.Enabled then return end
     
@@ -112,10 +111,19 @@ local function UpdatePlayerESP(player)
     local rootPart = character:FindFirstChild("HumanoidRootPart")
     if not humanoid or not rootPart then return end
 
+    -- Get position with proper visibility check
     local pos, onScreen = Camera:WorldToViewportPoint(rootPart.Position)
-    if not onScreen then return end
+    if not onScreen then 
+        -- Cleanup if player goes off-screen
+        if drawings[player] then
+            for _, drawing in pairs(drawings[player]) do
+                drawing.Visible = false
+            end
+        end
+        return 
+    end
 
-    -- Distance check
+    -- Distance calculation
     local distance = (rootPart.Position - Camera.CFrame.Position).Magnitude
     if distance > ESP.Config.MaxDistance then return end
 
@@ -129,6 +137,10 @@ local function UpdatePlayerESP(player)
         }
     end
     local d = drawings[player]
+
+    -- Get proper box size (now distance-aware)
+    local boxSize = GetBoxSize(character, distance)
+    local boxPos = Vector2.new(pos.X - boxSize.X/2, pos.Y - boxSize.Y/2)
 
     -- Get colors
     local baseColor = ESP.Config.Rainbow.Enabled and GetRainbowColor() or GetTeamColor(player)
@@ -150,8 +162,9 @@ local function UpdatePlayerESP(player)
     end
 
     -- Tracer
+     -- Fixed Tracer (always visible when enabled)
     if ESP.Config.Tracer.Enabled then
-        d.Tracer.Visible = true
+        d.Tracer.Visible = onScreen
         d.Tracer.Color = baseColor
         d.Tracer.Thickness = ESP.Config.Tracer.Thickness
         
@@ -169,6 +182,7 @@ local function UpdatePlayerESP(player)
     else
         d.Tracer.Visible = false
     end
+end
 
     -- HealthBar
     if ESP.Config.HealthBar.Enabled then
