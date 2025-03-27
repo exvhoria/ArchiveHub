@@ -1,4 +1,4 @@
--- Velocity ESP v2.1 - Configurable & Optimized
+-- Velocity ESP v2.1.1 - Fixed Box Size Calculation
 local ESP = {
     Config = {
         -- Master switches
@@ -79,19 +79,24 @@ local function GetBoxSize(character)
     local head = character:FindFirstChild("Head")
     if not root or not head then return Vector2.new(50, 80) end
     
-    -- Calculate actual character height/width
-    local top = head.Position.Y
-    local bottom = root.Position.Y - (root.Size.Y/2)
-    local height = (top - bottom) * 2 -- Adjusted multiplier
-    local width = height * 0.6 -- Aspect ratio fix
+    -- Get world positions
+    local topPos = Vector3.new(0, head.Position.Y, 0)
+    local bottomPos = Vector3.new(0, root.Position.Y - (root.Size.Y/2), 0)
     
-    -- Apply scaling and convert to screen space
-    local _, topScreen = Camera:WorldToViewportPoint(Vector3.new(0, top, 0))
-    local _, bottomScreen = Camera:WorldToViewportPoint(Vector3.new(0, bottom, 0))
+    -- Convert to screen space with safety checks
+    local topScreen, topVisible = Camera:WorldToViewportPoint(topPos)
+    local bottomScreen, bottomVisible = Camera:WorldToViewportPoint(bottomPos)
+    
+    if not (topVisible and bottomVisible) then
+        return Vector2.new(50, 80) -- Fallback size
+    end
+    
+    -- Calculate proper dimensions
     local screenHeight = math.abs(topScreen.Y - bottomScreen.Y)
+    local screenWidth = screenHeight * 0.6 -- Aspect ratio
     
     return Vector2.new(
-        width * ESP.Config.Box.Scale,
+        screenWidth * ESP.Config.Box.Scale,
         screenHeight * ESP.Config.Box.Scale
     )
 end
