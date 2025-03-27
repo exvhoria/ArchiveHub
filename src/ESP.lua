@@ -1,529 +1,355 @@
---[[
-    Advanced ESP Module extracted from AirHub V2
-    Features:
-    - Advanced ESP
-    - Tracer
-    - Box
-    - Healthbar
-    - Rainbow mode
-]]
+-- Advanced ESP Script with Tracer, Box, Healthbar, and Rainbow Mode
+-- Inspired by Exunys' AirHub V2 ESP implementation
 
--- Cache frequently used functions and services
-local game = game
-local mathfloor, mathabs, mathclamp = math.floor, math.abs, math.clamp
-local stringformat = string.format
-local tablefind = table.find
-local wait, spawn = task.wait, task.spawn
-local Drawing = Drawing
-local Vector2new = Vector2.new
-local Color3fromRGB, Color3fromHSV = Color3.fromRGB, Color3.fromHSV
-
--- Get services
-local Workspace = game:GetService("Workspace")
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 
--- Cache important objects
-local CurrentCamera = Workspace.CurrentCamera
 local LocalPlayer = Players.LocalPlayer
+local Camera = workspace.CurrentCamera
 
--- ESP Settings
-local ESP = {
-    Settings = {
-        Enabled = false,
-        TeamCheck = false,
-        AliveCheck = true,
-        EntityESP = true,
-        EnableTeamColors = false,
-        TeamColor = Color3fromRGB(170, 170, 255)
-    },
+-- Settings
+local ESP_Settings = {
+    Enabled = true,
+    TeamCheck = true,
+    TeamColor = true,
+    RainbowMode = true,
+    RainbowSpeed = 0.5,
     
-    Properties = {
-        ESP = {
-            Enabled = true,
-            RainbowColor = false,
-            RainbowOutlineColor = false,
-            Offset = 10,
-            Color = Color3fromRGB(255, 255, 255),
-            Transparency = 1,
-            Size = 14,
-            Font = Drawing.Fonts.Plex,
-            OutlineColor = Color3fromRGB(0, 0, 0),
-            Outline = true,
-            DisplayDistance = true,
-            DisplayHealth = false,
-            DisplayName = false,
-            DisplayDisplayName = true,
-            DisplayTool = true
-        },
-        
-        Tracer = {
-            Enabled = true,
-            RainbowColor = false,
-            RainbowOutlineColor = false,
-            Position = 1, -- 1 = Bottom; 2 = Center; 3 = Mouse
-            Transparency = 1,
-            Thickness = 1,
-            Color = Color3fromRGB(255, 255, 255),
-            Outline = true,
-            OutlineColor = Color3fromRGB(0, 0, 0)
-        },
-        
-        Box = {
-            Enabled = true,
-            RainbowColor = false,
-            RainbowOutlineColor = false,
-            Color = Color3fromRGB(255, 255, 255),
-            Transparency = 1,
-            Thickness = 1,
-            Filled = false,
-            OutlineColor = Color3fromRGB(0, 0, 0),
-            Outline = true
-        },
-        
-        HealthBar = {
-            Enabled = true,
-            RainbowOutlineColor = false,
-            Offset = 4,
-            Blue = 100,
-            Position = 3, -- 1 = Top; 2 = Bottom; 3 = Left; 4 = Right
-            Thickness = 1,
-            Transparency = 1,
-            OutlineColor = Color3fromRGB(0, 0, 0),
-            Outline = true
-        }
-    },
+    -- Component toggles
+    BoxESP = true,
+    Tracer = true,
+    Healthbar = true,
+    NameESP = true,
+    DistanceESP = true,
     
-    DeveloperSettings = {
-        UpdateMode = "RenderStepped",
-        TeamCheckOption = "TeamColor",
-        RainbowSpeed = 1,
-        WidthBoundary = 1.5,
-        UnwrapOnCharacterAbsence = false
-    },
-    
-    WrappedObjects = {},
-    Connections = {}
+    -- Colors
+    AllyColor = Color3.fromRGB(0, 255, 0),
+    EnemyColor = Color3.fromRGB(255, 0, 0),
+    NeutralColor = Color3.fromRGB(255, 255, 255)
 }
 
--- Core functions
-local function GetRainbowColor()
-    local RainbowSpeed = ESP.DeveloperSettings.RainbowSpeed
-    return Color3fromHSV(tick() % RainbowSpeed / RainbowSpeed, 1, 1)
+-- ESP Objects storage
+local ESP_Objects = {}
+
+-- Rainbow color generator
+local function GetRainbowColor(speed)
+    local hue = tick() * speed % 1
+    return Color3.fromHSV(hue, 1, 1)
 end
 
-local function GetColorFromHealth(Health, MaxHealth, Blue)
-    return Color3fromRGB(255 - mathfloor(Health / MaxHealth * 255), mathfloor(Health / MaxHealth * 255), Blue or 0)
-end
-
-local function GetTeamColor(Player, DefaultColor)
-    local Settings = ESP.Settings
-    local TeamCheckOption = ESP.DeveloperSettings.TeamCheckOption
+-- Create ESP for a player
+local function CreateESP(player)
+    if player == LocalPlayer then return end
     
-    return Settings.EnableTeamColors and Player[TeamCheckOption] == LocalPlayer[TeamCheckOption] and Settings.TeamColor or DefaultColor
-end
-
-local function CalculateBoxParameters(Object)
-    local IsPlayer = Object:IsA("Player")
-    local Character = IsPlayer and Object.Character or Object.Parent
-    local Part = IsPlayer and (Character.PrimaryPart or Character:FindFirstChild("HumanoidRootPart")) or Object
+    local character = player.Character or player.CharacterAdded:Wait()
+    local humanoid = character:WaitForChild("Humanoid")
+    local head = character:WaitForChild("Head")
     
-    if not Part then return nil, nil, false end
+    local espFolder = Instance.new("Folder")
+    espFolder.Name = player.Name
+    espFolder.Parent = game:GetService("CoreGui")
     
-    local PartCFrame = Part.CFrame
-    local PartUpVector = PartCFrame.UpVector
-    local RigType = Character:FindFirstChild("Torso") and "R6" or "R15"
-    local CameraUpVector = CurrentCamera.CFrame.UpVector
-    
-    local Top, TopOnScreen = CurrentCamera:WorldToViewportPoint(Part.Position + (PartUpVector * (RigType == "R6" and 0.5 or 1.8)) + CameraUpVector)
-    local Bottom, BottomOnScreen = CurrentCamera:WorldToViewportPoint(Part.Position - (PartUpVector * (RigType == "R6" and 4 or 2.5)) - CameraUpVector)
-    
-    local Width = mathmax(mathfloor(mathabs(Top.X - Bottom.X)), 3)
-    local Height = mathmax(mathfloor(mathmax(mathabs(Bottom.Y - Top.Y), Width / 2)), 3)
-    local BoxSize = Vector2new(mathfloor(mathmax(Height / (IsPlayer and ESP.DeveloperSettings.WidthBoundary or 1), Width)), Height)
-    local BoxPosition = Vector2new(mathfloor(Top.X / 2 + Bottom.X / 2 - BoxSize.X / 2), mathfloor(mathmin(Top.Y, Bottom.Y)))
-    
-    return BoxPosition, BoxSize, (TopOnScreen and BottomOnScreen)
-end
-
--- Visual update functions
-local function UpdateESP(Entry, TopText, BottomText)
-    local Settings = ESP.Properties.ESP
-    local Position, Size, OnScreen = CalculateBoxParameters(Entry.Object)
-    
-    TopText.Visible = OnScreen
-    BottomText.Visible = OnScreen
-    
-    if OnScreen then
-        -- Update common properties
-        TopText.Size = Settings.Size
-        TopText.Transparency = Settings.Transparency
-        TopText.Outline = Settings.Outline
-        BottomText.Size = Settings.Size
-        BottomText.Transparency = Settings.Transparency
-        BottomText.Outline = Settings.Outline
-        
-        -- Update colors
-        TopText.Color = GetTeamColor(Entry.Object, Settings.RainbowColor and GetRainbowColor() or Settings.Color)
-        TopText.OutlineColor = Settings.RainbowOutlineColor and GetRainbowColor() or Settings.OutlineColor
-        BottomText.Color = TopText.Color
-        BottomText.OutlineColor = TopText.OutlineColor
-        
-        -- Position text
-        local Offset = mathclamp(Settings.Offset, 10, 30)
-        TopText.Position = Vector2new(Position.X + (Size.X / 2), Position.Y - Offset * 2)
-        BottomText.Position = Vector2new(Position.X + (Size.X / 2), Position.Y + Size.Y + Offset / 2)
-        
-        -- Set text content
-        local Character = Entry.Object.Character
-        local Humanoid = Character and Character:FindFirstChildOfClass("Humanoid")
-        local Health, MaxHealth = Humanoid and Humanoid.Health or 0, Humanoid and Humanoid.MaxHealth or 100
-        local Tool = Settings.DisplayTool and Character:FindFirstChildOfClass("Tool")
-        
-        -- Top text (name/health)
-        local nameText = Settings.DisplayName and Entry.Object.Name or ""
-        local displayNameText = Settings.DisplayDisplayName and Entry.Object.DisplayName or ""
-        local combinedName = displayNameText ~= nameText and stringformat("%s (%s)", displayNameText, nameText) or nameText
-        
-        if Settings.DisplayHealth then
-            TopText.Text = stringformat("[%d/%d] %s", mathfloor(Health), MaxHealth, combinedName)
-        else
-            TopText.Text = combinedName
-        end
-        
-        -- Bottom text (distance/tool)
-        local distanceText = Settings.DisplayDistance and stringformat("%d Studs", mathfloor((Character.PrimaryPart.Position - CurrentCamera.CFrame.Position).Magnitude)) or ""
-        local toolText = Tool and ((distanceText ~= "" and "\n" or "")..Tool.Name) or ""
-        BottomText.Text = distanceText..toolText
-    end
-end
-
-local function UpdateTracer(Entry, Tracer, TracerOutline)
-    local Settings = ESP.Properties.Tracer
-    local Position, Size, OnScreen = CalculateBoxParameters(Entry.Object)
-    
-    Tracer.Visible = OnScreen
-    TracerOutline.Visible = OnScreen and Settings.Outline
-    
-    if OnScreen then
-        -- Update common properties
-        Tracer.Thickness = Settings.Thickness
-        Tracer.Transparency = Settings.Transparency
-        
-        -- Update colors
-        Tracer.Color = GetTeamColor(Entry.Object, Settings.RainbowColor and GetRainbowColor() or Settings.Color)
-        
-        -- Set positions
-        local CameraViewportSize = CurrentCamera.ViewportSize
-        local TargetPosition = Vector2new(Position.X + (Size.X / 2), Position.Y + Size.Y)
-        
-        if Settings.Position == 1 then -- Bottom
-            Tracer.From = Vector2new(CameraViewportSize.X / 2, CameraViewportSize.Y)
-        elseif Settings.Position == 2 then -- Center
-            Tracer.From = CameraViewportSize / 2
-        elseif Settings.Position == 3 then -- Mouse
-            Tracer.From = UserInputService:GetMouseLocation()
-        else
-            Settings.Position = 1
-        end
-        
-        Tracer.To = TargetPosition
-        
-        -- Update outline if enabled
-        if Settings.Outline then
-            TracerOutline.Color = Settings.RainbowOutlineColor and GetRainbowColor() or Settings.OutlineColor
-            TracerOutline.Thickness = Settings.Thickness + 1
-            TracerOutline.Transparency = Settings.Transparency
-            TracerOutline.From = Tracer.From
-            TracerOutline.To = Tracer.To
-        end
-    end
-end
-
-local function UpdateBox(Entry, Box, BoxOutline)
-    local Settings = ESP.Properties.Box
-    local Position, Size, OnScreen = CalculateBoxParameters(Entry.Object)
-    
-    Box.Visible = OnScreen
-    BoxOutline.Visible = OnScreen and Settings.Outline
-    
-    if OnScreen then
-        -- Update common properties
-        Box.Thickness = Settings.Thickness
-        Box.Transparency = Settings.Transparency
-        Box.Filled = Settings.Filled
-        
-        -- Update colors
-        Box.Color = GetTeamColor(Entry.Object, Settings.RainbowColor and GetRainbowColor() or Settings.Color)
-        
-        -- Set position and size
-        Box.Position = Position
-        Box.Size = Size
-        
-        -- Update outline if enabled
-        if Settings.Outline then
-            BoxOutline.Color = Settings.RainbowOutlineColor and GetRainbowColor() or Settings.OutlineColor
-            BoxOutline.Thickness = Settings.Thickness + 1
-            BoxOutline.Transparency = Settings.Transparency
-            BoxOutline.Position = Position
-            BoxOutline.Size = Size
-        end
-    end
-end
-
-local function UpdateHealthBar(Entry, HealthBar, Outline, Humanoid)
-    local Settings = ESP.Properties.HealthBar
-    local Position, Size, OnScreen = CalculateBoxParameters(Entry.Object)
-    
-    HealthBar.Visible = OnScreen
-    Outline.Visible = OnScreen and Settings.Outline
-    
-    if OnScreen then
-        -- Update common properties
-        HealthBar.Thickness = Settings.Thickness
-        HealthBar.Transparency = Settings.Transparency
-        
-        -- Get health values
-        local MaxHealth = Humanoid and Humanoid.MaxHealth or 100
-        local Health = Humanoid and mathclamp(Humanoid.Health, 0, MaxHealth) or 0
-        local Offset = mathclamp(Settings.Offset, 4, 12)
-        
-        -- Update color based on health
-        HealthBar.Color = GetColorFromHealth(Health, MaxHealth, Settings.Blue)
-        
-        -- Position health bar based on settings
-        if Settings.Position == 1 then -- Top
-            HealthBar.From = Vector2new(Position.X, Position.Y - Offset)
-            HealthBar.To = Vector2new(Position.X + (Health / MaxHealth) * Size.X, Position.Y - Offset)
-            
-            if Settings.Outline then
-                Outline.From = Vector2new(Position.X - 1, Position.Y - Offset)
-                Outline.To = Vector2new(Position.X + Size.X + 1, Position.Y - Offset)
-            end
-        elseif Settings.Position == 2 then -- Bottom
-            HealthBar.From = Vector2new(Position.X, Position.Y + Size.Y + Offset)
-            HealthBar.To = Vector2new(Position.X + (Health / MaxHealth) * Size.X, Position.Y + Size.Y + Offset)
-            
-            if Settings.Outline then
-                Outline.From = Vector2new(Position.X - 1, Position.Y + Size.Y + Offset)
-                Outline.To = Vector2new(Position.X + Size.X + 1, Position.Y + Size.Y + Offset)
-            end
-        elseif Settings.Position == 3 then -- Left
-            HealthBar.From = Vector2new(Position.X - Offset, Position.Y + Size.Y)
-            HealthBar.To = Vector2new(Position.X - Offset, Position.Y + Size.Y - (Health / MaxHealth) * Size.Y)
-            
-            if Settings.Outline then
-                Outline.From = Vector2new(Position.X - Offset, Position.Y + Size.Y + 1)
-                Outline.To = Vector2new(Position.X - Offset, Position.Y + Size.Y - Size.Y - 2)
-            end
-        elseif Settings.Position == 4 then -- Right
-            HealthBar.From = Vector2new(Position.X + Size.X + Offset, Position.Y + Size.Y)
-            HealthBar.To = Vector2new(Position.X + Size.X + Offset, Position.Y + Size.Y - (Health / MaxHealth) * Size.Y)
-            
-            if Settings.Outline then
-                Outline.From = Vector2new(Position.X + Size.X + Offset, Position.Y + Size.Y + 1)
-                Outline.To = Vector2new(Position.X + Size.X + Offset, Position.Y + Size.Y - Size.Y - 2)
-            end
-        else
-            Settings.Position = 3
-        end
-        
-        -- Update outline if enabled
-        if Settings.Outline then
-            Outline.Color = Settings.RainbowOutlineColor and GetRainbowColor() or Settings.OutlineColor
-            Outline.Thickness = Settings.Thickness + 1
-            Outline.Transparency = Settings.Transparency
-        end
-    end
-end
-
--- Object management
-local function CreateVisuals(Entry)
-    -- ESP Text
-    local TopText = Drawing.new("Text")
-    TopText.Center = true
-    TopText.Visible = false
-    
-    local BottomText = Drawing.new("Text")
-    BottomText.Center = true
-    BottomText.Visible = false
+    -- Box ESP
+    local box = Drawing.new("Square")
+    box.Visible = false
+    box.Color = ESP_Settings.EnemyColor
+    box.Thickness = 1
+    box.Filled = false
+    box.ZIndex = 2
     
     -- Tracer
-    local Tracer = Drawing.new("Line")
-    Tracer.Visible = false
+    local tracer = Drawing.new("Line")
+    tracer.Visible = false
+    tracer.Color = ESP_Settings.EnemyColor
+    tracer.Thickness = 1
+    tracer.ZIndex = 1
     
-    local TracerOutline = Drawing.new("Line")
-    TracerOutline.Visible = false
+    -- Name
+    local nameText = Drawing.new("Text")
+    nameText.Visible = false
+    nameText.Color = ESP_Settings.EnemyColor
+    nameText.Size = 14
+    nameText.Center = true
+    nameText.Outline = true
+    nameText.ZIndex = 3
+    nameText.Text = player.Name
     
-    -- Box
-    local Box = Drawing.new("Square")
-    Box.Visible = false
+    -- Distance
+    local distanceText = Drawing.new("Text")
+    distanceText.Visible = false
+    distanceText.Color = ESP_Settings.EnemyColor
+    distanceText.Size = 14
+    distanceText.Center = true
+    distanceText.Outline = true
+    distanceText.ZIndex = 3
     
-    local BoxOutline = Drawing.new("Square")
-    BoxOutline.Visible = false
+    -- Health bar
+    local healthBarOutline = Drawing.new("Square")
+    healthBarOutline.Visible = false
+    healthBarOutline.Color = Color3.new(0, 0, 0)
+    healthBarOutline.Thickness = 1
+    healthBarOutline.Filled = true
+    healthBarOutline.ZIndex = 1
     
-    -- Health Bar
-    local HealthBar = Drawing.new("Line")
-    HealthBar.Visible = false
+    local healthBar = Drawing.new("Square")
+    healthBar.Visible = false
+    healthBar.Color = ESP_Settings.EnemyColor
+    healthBar.Thickness = 1
+    healthBar.Filled = true
+    healthBar.ZIndex = 2
     
-    local HealthBarOutline = Drawing.new("Line")
-    HealthBarOutline.Visible = false
-    
-    -- Store visuals in entry
-    Entry.Visuals = {
-        ESP = {TopText, BottomText},
-        Tracer = {Tracer, TracerOutline},
-        Box = {Box, BoxOutline},
-        HealthBar = {HealthBar, HealthBarOutline}
-    }
-    
-    -- Create update connections
-    Entry.Connections = {
-        ESP = RunService[ESP.DeveloperSettings.UpdateMode]:Connect(function()
-            if ESP.Settings.Enabled and ESP.Properties.ESP.Enabled then
-                UpdateESP(Entry, TopText, BottomText)
-            else
-                TopText.Visible = false
-                BottomText.Visible = false
-            end
-        end),
-        
-        Tracer = RunService[ESP.DeveloperSettings.UpdateMode]:Connect(function()
-            if ESP.Settings.Enabled and ESP.Properties.Tracer.Enabled then
-                UpdateTracer(Entry, Tracer, TracerOutline)
-            else
-                Tracer.Visible = false
-                TracerOutline.Visible = false
-            end
-        end),
-        
-        Box = RunService[ESP.DeveloperSettings.UpdateMode]:Connect(function()
-            if ESP.Settings.Enabled and ESP.Properties.Box.Enabled then
-                UpdateBox(Entry, Box, BoxOutline)
-            else
-                Box.Visible = false
-                BoxOutline.Visible = false
-            end
-        end),
-        
-        HealthBar = RunService[ESP.DeveloperSettings.UpdateMode]:Connect(function()
-            local Humanoid = Entry.Object.Character and Entry.Object.Character:FindFirstChildOfClass("Humanoid")
-            if ESP.Settings.Enabled and ESP.Properties.HealthBar.Enabled then
-                UpdateHealthBar(Entry, HealthBar, HealthBarOutline, Humanoid)
-            else
-                HealthBar.Visible = false
-                HealthBarOutline.Visible = false
-            end
-        end)
+    -- Store all drawing objects
+    ESP_Objects[player] = {
+        Character = character,
+        Box = box,
+        Tracer = tracer,
+        Name = nameText,
+        Distance = distanceText,
+        HealthBarOutline = healthBarOutline,
+        HealthBar = healthBar,
+        Humanoid = humanoid,
+        Head = head
     }
 end
 
-local function WrapPlayer(Player)
-    if Player == LocalPlayer or ESP.WrappedObjects[Player] then return end
+-- Remove ESP for a player
+local function RemoveESP(player)
+    local espData = ESP_Objects[player]
+    if not espData then return end
     
-    local Entry = {
-        Object = Player,
-        Visuals = {},
-        Connections = {}
-    }
-    
-    ESP.WrappedObjects[Player] = Entry
-    
-    -- Create visuals when character exists
-    local function OnCharacterAdded(Character)
-        if Character then
-            CreateVisuals(Entry)
-        end
-    end
-    
-    if Player.Character then
-        OnCharacterAdded(Player.Character)
-    end
-    
-    Entry.Connections.CharacterAdded = Player.CharacterAdded:Connect(OnCharacterAdded)
-    Entry.Connections.PlayerRemoving = Player.AncestryChanged:Connect(function(_, parent)
-        if not parent then
-            UnwrapPlayer(Player)
-        end
-    end)
-end
-
-local function UnwrapPlayer(Player)
-    local Entry = ESP.WrappedObjects[Player]
-    if not Entry then return end
-    
-    -- Disconnect all connections
-    for _, connection in pairs(Entry.Connections) do
-        connection:Disconnect()
-    end
-    
-    -- Remove all visuals
-    for _, visuals in pairs(Entry.Visuals) do
-        for _, drawing in pairs(visuals) do
+    for _, drawing in pairs(espData) do
+        if typeof(drawing) == "Drawing" then
             drawing:Remove()
         end
     end
     
-    ESP.WrappedObjects[Player] = nil
+    ESP_Objects[player] = nil
 end
 
--- Initialize ESP
-local function Initialize()
-    -- Wrap existing players
+-- Update ESP visuals
+local function UpdateESP()
+    if not ESP_Settings.Enabled then return end
+    
+    for player, espData in pairs(ESP_Objects) do
+        if not player or not player.Character or not espData.Character or not espData.Character.Parent then
+            RemoveESP(player)
+            continue
+        end
+        
+        local character = espData.Character
+        local humanoid = espData.Humanoid
+        local head = espData.Head
+        
+        if not character or not humanoid or not head or humanoid.Health <= 0 then
+            for _, drawing in pairs(espData) do
+                if typeof(drawing) == "Drawing" then
+                    drawing.Visible = false
+                end
+            end
+            continue
+        end
+        
+        -- Calculate team color
+        local color
+        if ESP_Settings.RainbowMode then
+            color = GetRainbowColor(ESP_Settings.RainbowSpeed)
+        elseif ESP_Settings.TeamCheck and player.Team == LocalPlayer.Team then
+            color = ESP_Settings.AllyColor
+        else
+            color = ESP_Settings.EnemyColor
+        end
+        
+        -- Update color for all components
+        espData.Box.Color = color
+        espData.Tracer.Color = color
+        espData.Name.Color = color
+        espData.Distance.Color = color
+        espData.HealthBar.Color = color
+        
+        -- Calculate positions
+        local headPos, headOnScreen = Camera:WorldToViewportPoint(head.Position)
+        local rootPart = character:FindFirstChild("HumanoidRootPart")
+        local rootPos, rootOnScreen
+        
+        if rootPart then
+            rootPos, rootOnScreen = Camera:WorldToViewportPoint(rootPart.Position)
+        end
+        
+        if not headOnScreen and (not rootPart or not rootOnScreen) then
+            for _, drawing in pairs(espData) do
+                if typeof(drawing) == "Drawing" then
+                    drawing.Visible = false
+                end
+            end
+            continue
+        end
+        
+        -- Box ESP
+        if ESP_Settings.BoxESP then
+            local size = (Camera:WorldToViewportPoint(head.Position - Vector3.new(0, 3, 0)).Y - Camera:WorldToViewportPoint(head.Position + Vector3.new(0, 2.6, 0)).Y) / 2
+            local width = size * 1.5
+            
+            espData.Box.Size = Vector2.new(width, size * 2)
+            espData.Box.Position = Vector2.new(headPos.X - width / 2, headPos.Y - size)
+            espData.Box.Visible = true
+        else
+            espData.Box.Visible = false
+        end
+        
+        -- Tracer
+        if ESP_Settings.Tracer then
+            espData.Tracer.From = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y)
+            espData.Tracer.To = Vector2.new(headPos.X, headPos.Y)
+            espData.Tracer.Visible = true
+        else
+            espData.Tracer.Visible = false
+        end
+        
+        -- Name
+        if ESP_Settings.NameESP then
+            espData.Name.Position = Vector2.new(headPos.X, headPos.Y - 30)
+            espData.Name.Visible = true
+        else
+            espData.Name.Visible = false
+        end
+        
+        -- Distance
+        if ESP_Settings.DistanceESP and rootPart then
+            local distance = (rootPart.Position - Camera.CFrame.Position).Magnitude
+            espData.Distance.Text = string.format("[%d]", math.floor(distance))
+            espData.Distance.Position = Vector2.new(headPos.X, headPos.Y - 15)
+            espData.Distance.Visible = true
+        else
+            espData.Distance.Visible = false
+        end
+        
+        -- Health bar
+        if ESP_Settings.Healthbar then
+            local health = humanoid.Health / humanoid.MaxHealth
+            local barHeight = 40
+            local barWidth = 3
+            local barX = headPos.X - 25
+            local barY = headPos.Y - barHeight / 2
+            
+            -- Health bar outline
+            espData.HealthBarOutline.Size = Vector2.new(barWidth + 2, barHeight + 2)
+            espData.HealthBarOutline.Position = Vector2.new(barX - 1, barY - 1)
+            espData.HealthBarOutline.Visible = true
+            
+            -- Health bar
+            espData.HealthBar.Size = Vector2.new(barWidth, barHeight * health)
+            espData.HealthBar.Position = Vector2.new(barX, barY + (barHeight * (1 - health)))
+            espData.HealthBar.Visible = true
+        else
+            espData.HealthBarOutline.Visible = false
+            espData.HealthBar.Visible = false
+        end
+    end
+end
+
+-- Initialize ESP for all players
+local function InitializeESP()
     for _, player in ipairs(Players:GetPlayers()) do
         if player ~= LocalPlayer then
-            WrapPlayer(player)
-        end
-    end
-    
-    -- Connect to player added/removed events
-    ESP.Connections.PlayerAdded = Players.PlayerAdded:Connect(WrapPlayer)
-    ESP.Connections.PlayerRemoving = Players.PlayerRemoving:Connect(UnwrapPlayer)
-end
-
--- Public API
-ESP.Toggle = function(state)
-    ESP.Settings.Enabled = state
-end
-
-ESP.UpdateSettings = function(newSettings)
-    for key, value in pairs(newSettings) do
-        if ESP.Settings[key] ~= nil then
-            ESP.Settings[key] = value
+            coroutine.wrap(CreateESP)(player)
         end
     end
 end
 
-ESP.UpdateProperties = function(newProperties)
-    for category, properties in pairs(newProperties) do
-        if ESP.Properties[category] then
-            for key, value in pairs(properties) do
-                if ESP.Properties[category][key] ~= nil then
-                    ESP.Properties[category][key] = value
+-- Player added/removed events
+Players.PlayerAdded:Connect(function(player)
+    player.CharacterAdded:Connect(function(character)
+        if player ~= LocalPlayer then
+            CreateESP(player)
+        end
+    end)
+end)
+
+Players.PlayerRemoving:Connect(function(player)
+    RemoveESP(player)
+end)
+
+-- Character added event
+LocalPlayer.CharacterAdded:Connect(function(character)
+    -- Reinitialize ESP when local player respawns
+    for player, _ in pairs(ESP_Objects) do
+        RemoveESP(player)
+    end
+    InitializeESP()
+end)
+
+-- Main loop
+RunService.RenderStepped:Connect(UpdateESP)
+
+-- Initial setup
+InitializeESP()
+
+-- Toggle ESP with a keybind
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if input.KeyCode == Enum.KeyCode.F1 and not gameProcessed then
+        ESP_Settings.Enabled = not ESP_Settings.Enabled
+        if not ESP_Settings.Enabled then
+            -- Hide all ESP when disabled
+            for _, espData in pairs(ESP_Objects) do
+                for _, drawing in pairs(espData) do
+                    if typeof(drawing) == "Drawing" then
+                        drawing.Visible = false
+                    end
                 end
             end
         end
     end
-end
+end)
 
-ESP.Unload = function()
-    -- Unwrap all players
-    for player, _ in pairs(ESP.WrappedObjects) do
-        UnwrapPlayer(player)
+-- GUI for settings (optional - you can remove this if you want)
+local function CreateGUI()
+    local ScreenGui = Instance.new("ScreenGui")
+    ScreenGui.Name = "ESP_GUI"
+    ScreenGui.Parent = game:GetService("CoreGui")
+    
+    local Frame = Instance.new("Frame")
+    Frame.Size = UDim2.new(0, 200, 0, 300)
+    Frame.Position = UDim2.new(0, 10, 0.5, -150)
+    Frame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    Frame.BorderSizePixel = 0
+    Frame.Parent = ScreenGui
+    
+    local Title = Instance.new("TextLabel")
+    Title.Text = "ESP Settings"
+    Title.Size = UDim2.new(1, 0, 0, 30)
+    Title.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Title.Parent = Frame
+    
+    local function CreateToggle(name, setting, yPos)
+        local Toggle = Instance.new("TextButton")
+        Toggle.Text = name .. ": " .. (ESP_Settings[setting] and "ON" or "OFF")
+        Toggle.Size = UDim2.new(1, -20, 0, 25)
+        Toggle.Position = UDim2.new(0, 10, 0, yPos)
+        Toggle.BackgroundColor3 = ESP_Settings[setting] and Color3.fromRGB(0, 100, 0) or Color3.fromRGB(100, 0, 0)
+        Toggle.TextColor3 = Color3.fromRGB(255, 255, 255)
+        Toggle.Parent = Frame
+        
+        Toggle.MouseButton1Click:Connect(function()
+            ESP_Settings[setting] = not ESP_Settings[setting]
+            Toggle.Text = name .. ": " .. (ESP_Settings[setting] and "ON" or "OFF")
+            Toggle.BackgroundColor3 = ESP_Settings[setting] and Color3.fromRGB(0, 100, 0) or Color3.fromRGB(100, 0, 0)
+        end)
     end
     
-    -- Disconnect all connections
-    for _, connection in pairs(ESP.Connections) do
-        connection:Disconnect()
-    end
-    
-    -- Clear tables
-    ESP.WrappedObjects = {}
-    ESP.Connections = {}
+    CreateToggle("ESP Enabled", "Enabled", 35)
+    CreateToggle("Team Check", "TeamCheck", 65)
+    CreateToggle("Team Color", "TeamColor", 95)
+    CreateToggle("Rainbow Mode", "RainbowMode", 125)
+    CreateToggle("Box ESP", "BoxESP", 155)
+    CreateToggle("Tracer", "Tracer", 185)
+    CreateToggle("Healthbar", "Healthbar", 215)
+    CreateToggle("Name ESP", "NameESP", 245)
+    CreateToggle("Distance ESP", "DistanceESP", 275)
 end
 
--- Start ESP
-Initialize()
+-- Create the GUI
+CreateGUI()
 
-return ESP
+print("Advanced ESP loaded! Press F1 to toggle. Settings GUI is available in the top-left corner.")
