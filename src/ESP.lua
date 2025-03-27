@@ -9,7 +9,7 @@ local ESP = {
     
     Settings = {
         LoadConfigOnLaunch = false,
-        Enabled = false,
+        Enabled = true,
         PartsOnly = false,
         TeamCheck = true,
         AllyColor = Color3.fromRGB(0, 255, 0),
