@@ -1,526 +1,336 @@
--- ESP Module extracted from AirHub V2
+-- Velocity ESP Hybrid v3.0
 local ESP = {
     DeveloperSettings = {
-        UpdateMode = "RenderStepped",
-        TeamCheckOption = "TeamColor",
-        RainbowSpeed = 0.5,
-        WidthBoundary = 1.5
+        UpdateMode = "RenderStepped",   -- "RenderStepped", "Stepped", or "Heartbeat"
+        TeamCheckOption = "TeamColor",  -- "TeamColor" or "Team"
+        RainbowSpeed = 0.5,             -- Lower = faster rainbow
+        WidthBoundary = 1.5             -- Box width divisor
     },
-    
     Settings = {
-        LoadConfigOnLaunch = false,
         Enabled = true,
-        PartsOnly = false,
         TeamCheck = true,
         AllyColor = Color3.fromRGB(0, 255, 0),
         EnemyColor = Color3.fromRGB(255, 0, 0),
         RainbowColor = false,
-        Distance = true,
-        DistanceMeasurement = "Studs",
-        DistanceAbbreviation = true,
-        DisplayName = true,
-        Health = true,
-        HealthPercentage = false,
-        Boxes = true,
-        BoxFill = false,
-        BoxFillTransparency = 0.5,
-        Tracers = true,
-        HeadDots = true,
-        HeadDotOutline = true,
-        HealthBars = true,
-        HealthText = true,
-        Chams = true,
-        ChamOutline = true,
-        TextOutline = true,
-        TextFont = "UI",
-        TextSize = 13,
-        TextOffset = 15,
-        LimitDistance = false,
-        MaxDistance = 1000
+        MaxDistance = 1000,
+        -- Feature toggles
+        ESP = true,
+        Tracer = true,
+        Box = true,
+        HealthBar = true,
+        HeadDot = false,  -- Disabled by default
+        Chams = false     -- Disabled by default
     },
-    
     Properties = {
         ESP = {
             Font = Drawing.Fonts.UI,
             Size = 13,
-            Center = true,
+            Color = Color3.fromRGB(255, 255, 255),
             Outline = true,
             OutlineColor = Color3.fromRGB(0, 0, 0),
-            Color = Color3.fromRGB(255, 255, 255),
             Transparency = 1,
             Offset = 15
         },
-        
         Tracer = {
             Thickness = 1,
             Color = Color3.fromRGB(255, 255, 255),
-            Transparency = 1,
-            Outline = false,
-            OutlineColor = Color3.fromRGB(0, 0, 0),
-            FromMouse = false,
-            Position = 1 -- 1 = Bottom, 2 = Center, 3 = Mouse
+            Position = 1,  -- 1 = Bottom, 2 = Center, 3 = Mouse
+            Transparency = 1
         },
-        
-        HeadDot = {
-            Thickness = 1,
-            Color = Color3.fromRGB(255, 255, 255),
-            Transparency = 1,
-            Outline = true,
-            OutlineColor = Color3.fromRGB(0, 0, 0),
-            Filled = false,
-            NumSides = 30
-        },
-        
         Box = {
             Thickness = 1,
             Color = Color3.fromRGB(255, 255, 255),
             Transparency = 1,
             Outline = true,
             OutlineColor = Color3.fromRGB(0, 0, 0),
-            Filled = false,
-            FilledColor = Color3.fromRGB(255, 255, 255),
-            FilledTransparency = 0.5
+            Filled = false
         },
-        
         HealthBar = {
-            Thickness = 1,
+            Thickness = 2,
             Color = Color3.fromRGB(255, 255, 255),
-            Transparency = 1,
-            Outline = true,
-            OutlineColor = Color3.fromRGB(0, 0, 0),
-            Position = 2, -- 1 = Top, 2 = Bottom, 3 = Left, 4 = Right
+            Position = 3,  -- 1 = Top, 2 = Bottom, 3 = Left, 4 = Right
             Offset = 6,
             Blue = 0
-        },
-        
-        Chams = {
-            Thickness = 1,
-            Color = Color3.fromRGB(255, 255, 255),
-            Transparency = 1,
-            Outline = true,
-            OutlineColor = Color3.fromRGB(0, 0, 0),
-            Filled = false,
-            FilledColor = Color3.fromRGB(255, 255, 255),
-            FilledTransparency = 0.5
-        },
-        
-        Crosshair = {
-            Enabled = false,
-            Color = Color3.fromRGB(255, 255, 255),
-            Size = 12,
-            GapSize = 5,
-            Rotation = 0,
-            RotationSpeed = 0,
-            Thickness = 1,
-            Transparency = 1,
-            Pulsing = false,
-            PulsingSpeed = 5,
-            PulsingStep = 0,
-            PulsingBounds = {0, 12},
-            Position = 1, -- 1 = Mouse, 2 = Center
-            CenterDot = {
-                Enabled = false,
-                Color = Color3.fromRGB(255, 255, 255),
-                Radius = 3,
-                NumSides = 12,
-                Thickness = 1,
-                Transparency = 1,
-                Filled = false
-            }
         }
     }
 }
 
--- Internal variables
+-- Services
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
-local Camera = workspace.CurrentCamera
+local UserInputService = game:GetService("UserInputService")
 local LocalPlayer = Players.LocalPlayer
+local Camera = workspace.CurrentCamera
 
-local Objects = {}
-local Connections = {}
+-- Drawing cache
+local drawings = {}
 
--- Drawing functions
-local function Create(class, properties)
-    local drawing = Drawing.new(class)
-    
-    for property, value in next, properties do
-        drawing[property] = value
+-- CORE FUNCTIONS (Optimized from both versions)
+local function GetTeamColor(player)
+    if not ESP.Settings.TeamCheck then 
+        return ESP.Properties.ESP.Color 
     end
     
-    return drawing
-end
-
-local function AddObject(player, object)
-    if not Objects[player] then
-        Objects[player] = {}
-    end
-    
-    table.insert(Objects[player], object)
-    return object
-end
-
--- ESP functions
-local function UpdateTeamColor(player, drawing)
-    if ESP.Settings.TeamCheck and player.Team ~= LocalPlayer.Team then
-        drawing.Color = ESP.Settings.EnemyColor
+    if ESP.DeveloperSettings.TeamCheckOption == "TeamColor" then
+        return player.TeamColor == LocalPlayer.TeamColor 
+               and ESP.Settings.AllyColor 
+               or ESP.Settings.EnemyColor
     else
-        drawing.Color = ESP.Settings.AllyColor
+        return player.Team == LocalPlayer.Team 
+               and ESP.Settings.AllyColor 
+               or ESP.Settings.EnemyColor
     end
 end
 
-local function UpdateRainbowColor(drawing)
-    local hue = tick() * ESP.DeveloperSettings.RainbowSpeed % 1
-    drawing.Color = Color3.fromHSV(hue, 1, 1)
+local function GetRainbowColor()
+    return Color3.fromHSV(tick() * ESP.DeveloperSettings.RainbowSpeed % 1, 1, 1)
 end
 
-local function UpdateESP(player, character)
-    if not character or not character:FindFirstChild("Humanoid") or not character:FindFirstChild("HumanoidRootPart") then
+local function GetHealthColor(health, maxHealth)
+    local ratio = math.clamp(health / maxHealth, 0, 1)
+    return Color3.fromRGB(255 - ratio * 255, ratio * 255, ESP.Properties.HealthBar.Blue)
+end
+
+local function GetProperBoxSize(character)
+    local head = character:FindFirstChild("Head")
+    local root = character:FindFirstChild("HumanoidRootPart")
+    if not head or not root then return Vector2.new(50, 80) end
+    
+    -- Get positions with proper visibility checks
+    local topPos, topVisible = Camera:WorldToViewportPoint(head.Position)
+    local bottomPos, bottomVisible = Camera:WorldToViewportPoint(root.Position)
+    
+    if not (topVisible and bottomVisible) then
+        return Vector2.new(50, 80) -- Fallback size
+    end
+    
+    -- Calculate screen-space dimensions
+    local height = math.abs(topPos.Y - bottomPos.Y)
+    local width = height * (ESP.DeveloperSettings.WidthBoundary / 2) -- Proper aspect ratio
+    
+    return Vector2.new(width, height)
+end
+
+-- MAIN RENDERING (Fixed visibility and scaling)
+local function UpdatePlayerESP(player)
+    local character = player.Character
+    if not character then return end
+    
+    local humanoid = character:FindFirstChildOfClass("Humanoid")
+    local rootPart = character:FindFirstChild("HumanoidRootPart")
+    if not humanoid or not rootPart then return end
+
+    -- Proper visibility check (fixes stuck ESP)
+    local pos, onScreen = Camera:WorldToViewportPoint(rootPart.Position)
+    if not onScreen then
+        if drawings[player] then
+            for _, drawing in pairs(drawings[player]) do
+                drawing.Visible = false
+            end
+        end
         return
     end
+
+    -- Distance check
+    local distance = (rootPart.Position - Camera.CFrame.Position).Magnitude
+    if distance > ESP.Settings.MaxDistance then return end
+
+    -- Initialize drawings if needed
+    if not drawings[player] then
+        drawings[player] = {
+            Box = {Lines = {}, Fill = nil},
+            Tracer = Drawing.new("Line"),
+            HealthBar = {Main = nil, Outline = nil},
+            Text = Drawing.new("Text")
+        }
+        
+        -- Box setup (4 lines)
+        for i = 1, 4 do
+            drawings[player].Box.Lines[i] = Drawing.new("Line")
+        end
+        
+        -- Healthbar setup
+        drawings[player].HealthBar.Main = Drawing.new("Line")
+        drawings[player].HealthBar.Outline = Drawing.new("Line")
+    end
+    local d = drawings[player]
+
+    -- Get colors
+    local baseColor = ESP.Settings.RainbowColor and GetRainbowColor() or GetTeamColor(player)
+    local healthColor = GetHealthColor(humanoid.Health, humanoid.MaxHealth)
+
+    -- BOX ESP (Fixed scaling)
+    if ESP.Settings.Box then
+        local boxSize = GetProperBoxSize(character)
+        local boxPos = Vector2.new(pos.X - boxSize.X/2, pos.Y - boxSize.Y/2)
+        
+        -- Box lines
+        local corners = {
+            Vector2.new(boxPos.X, boxPos.Y), -- Top-left
+            Vector2.new(boxPos.X + boxSize.X, boxPos.Y), -- Top-right
+            Vector2.new(boxPos.X + boxSize.X, boxPos.Y + boxSize.Y), -- Bottom-right
+            Vector2.new(boxPos.X, boxPos.Y + boxSize.Y) -- Bottom-left
+        }
+        
+        for i = 1, 4 do
+            local line = d.Box.Lines[i]
+            line.Visible = ESP.Settings.Enabled
+            line.From = corners[i]
+            line.To = corners[i % 4 + 1]
+            line.Color = baseColor
+            line.Thickness = ESP.Properties.Box.Thickness
+        end
+    end
+
+    -- TRACER (Fixed visibility)
+    if ESP.Settings.Tracer then
+        d.Tracer.Visible = ESP.Settings.Enabled and onScreen
+        d.Tracer.Color = baseColor
+        d.Tracer.Thickness = ESP.Properties.Tracer.Thickness
+        
+        local originY
+        if ESP.Properties.Tracer.Position == 1 then -- Bottom
+            originY = Camera.ViewportSize.Y
+        elseif ESP.Properties.Tracer.Position == 2 then -- Center
+            originY = Camera.ViewportSize.Y / 2
+        else -- Mouse
+            originY = UserInputService:GetMouseLocation().Y
+        end
+        
+        d.Tracer.From = Vector2.new(Camera.ViewportSize.X / 2, originY)
+        d.Tracer.To = Vector2.new(pos.X, pos.Y)
+    end
+
+    -- HEALTHBAR (Optimized)
+    if ESP.Settings.HealthBar then
+        local boxSize = GetProperBoxSize(character)
+        local boxPos = Vector2.new(pos.X - boxSize.X/2, pos.Y - boxSize.Y/2)
+        local healthRatio = math.clamp(humanoid.Health / humanoid.MaxHealth, 0, 1)
+        
+        -- Main bar
+        d.HealthBar.Main.Visible = ESP.Settings.Enabled
+        d.HealthBar.Main.Color = healthColor
+        d.HealthBar.Main.Thickness = ESP.Properties.HealthBar.Thickness
+        
+        -- Outline
+        d.HealthBar.Outline.Visible = ESP.Settings.Enabled
+        d.HealthBar.Outline.Color = ESP.Properties.HealthBar.OutlineColor or Color3.new(0,0,0)
+        d.HealthBar.Outline.Thickness = ESP.Properties.HealthBar.Thickness + 1
+        
+        -- Position based on setting
+        if ESP.Properties.HealthBar.Position == 1 then -- Top
+            d.HealthBar.Main.From = Vector2.new(boxPos.X, boxPos.Y - ESP.Properties.HealthBar.Offset)
+            d.HealthBar.Main.To = Vector2.new(boxPos.X + boxSize.X * healthRatio, boxPos.Y - ESP.Properties.HealthBar.Offset)
+            d.HealthBar.Outline.From = Vector2.new(boxPos.X, boxPos.Y - ESP.Properties.HealthBar.Offset)
+            d.HealthBar.Outline.To = Vector2.new(boxPos.X + boxSize.X, boxPos.Y - ESP.Properties.HealthBar.Offset)
+        elseif ESP.Properties.HealthBar.Position == 2 then -- Bottom
+            d.HealthBar.Main.From = Vector2.new(boxPos.X, boxPos.Y + boxSize.Y + ESP.Properties.HealthBar.Offset)
+            d.HealthBar.Main.To = Vector2.new(boxPos.X + boxSize.X * healthRatio, boxPos.Y + boxSize.Y + ESP.Properties.HealthBar.Offset)
+            d.HealthBar.Outline.From = Vector2.new(boxPos.X, boxPos.Y + boxSize.Y + ESP.Properties.HealthBar.Offset)
+            d.HealthBar.Outline.To = Vector2.new(boxPos.X + boxSize.X, boxPos.Y + boxSize.Y + ESP.Properties.HealthBar.Offset)
+        elseif ESP.Properties.HealthBar.Position == 3 then -- Left
+            d.HealthBar.Main.From = Vector2.new(boxPos.X - ESP.Properties.HealthBar.Offset, boxPos.Y + boxSize.Y)
+            d.HealthBar.Main.To = Vector2.new(boxPos.X - ESP.Properties.HealthBar.Offset, boxPos.Y + boxSize.Y * (1 - healthRatio))
+            d.HealthBar.Outline.From = Vector2.new(boxPos.X - ESP.Properties.HealthBar.Offset, boxPos.Y + boxSize.Y)
+            d.HealthBar.Outline.To = Vector2.new(boxPos.X - ESP.Properties.HealthBar.Offset, boxPos.Y)
+        else -- Right
+            d.HealthBar.Main.From = Vector2.new(boxPos.X + boxSize.X + ESP.Properties.HealthBar.Offset, boxPos.Y + boxSize.Y)
+            d.HealthBar.Main.To = Vector2.new(boxPos.X + boxSize.X + ESP.Properties.HealthBar.Offset, boxPos.Y + boxSize.Y * (1 - healthRatio))
+            d.HealthBar.Outline.From = Vector2.new(boxPos.X + boxSize.X + ESP.Properties.HealthBar.Offset, boxPos.Y + boxSize.Y)
+            d.HealthBar.Outline.To = Vector2.new(boxPos.X + boxSize.X + ESP.Properties.HealthBar.Offset, boxPos.Y)
+        end
+    end
+
+    -- TEXT ESP (Optimized)
+    if ESP.Settings.ESP then
+        local boxSize = GetProperBoxSize(character)
+        local boxPos = Vector2.new(pos.X - boxSize.X/2, pos.Y - boxSize.Y/2)
+        
+        d.Text.Visible = ESP.Settings.Enabled
+        d.Text.Text = string.format("%s [%d/%d] (%d)", 
+            player.Name, 
+            math.floor(humanoid.Health), 
+            math.floor(humanoid.MaxHealth),
+            math.floor(distance))
+        d.Text.Color = baseColor
+        d.Text.Position = Vector2.new(boxPos.X + boxSize.X/2, boxPos.Y - 20)
+        d.Text.Size = ESP.Properties.ESP.Size
+        d.Text.Font = ESP.Properties.ESP.Font
+        d.Text.Center = true
+        d.Text.Outline = ESP.Properties.ESP.Outline
+    end
+end
+
+-- PLAYER HANDLING (Optimized)
+local function PlayerAdded(player)
+    if player == LocalPlayer then return end
     
-    local humanoid = character.Humanoid
-    local rootPart = character.HumanoidRootPart
-    
-    -- Create ESP objects if they don't exist
-    if not Objects[player] then
-        Objects[player] = {}
-        
-        -- Text
-        local text = Create("Text", {
-            Text = player.Name,
-            Size = ESP.Properties.ESP.Size,
-            Center = ESP.Properties.ESP.Center,
-            Outline = ESP.Properties.ESP.Outline,
-            OutlineColor = ESP.Properties.ESP.OutlineColor,
-            Color = ESP.Properties.ESP.Color,
-            Transparency = ESP.Properties.ESP.Transparency,
-            Visible = false
-        })
-        
-        AddObject(player, text)
-        
-        -- Tracer
-        if ESP.Settings.Tracers then
-            local tracer = Create("Line", {
-                Thickness = ESP.Properties.Tracer.Thickness,
-                Color = ESP.Properties.Tracer.Color,
-                Transparency = ESP.Properties.Tracer.Transparency,
-                Visible = false
-            })
-            
-            AddObject(player, tracer)
-        end
-        
-        -- Box
-        if ESP.Settings.Boxes then
-            local box = {}
-            
-            for i = 1, 4 do
-                box[i] = Create("Line", {
-                    Thickness = ESP.Properties.Box.Thickness,
-                    Color = ESP.Properties.Box.Color,
-                    Transparency = ESP.Properties.Box.Transparency,
-                    Visible = false
-                })
-                
-                AddObject(player, box[i])
-            end
-            
-            if ESP.Settings.BoxFill then
-                local boxFill = Create("Square", {
-                    Thickness = 1,
-                    Color = ESP.Properties.Box.FilledColor,
-                    Transparency = ESP.Properties.Box.FilledTransparency,
-                    Filled = true,
-                    Visible = false
-                })
-                
-                AddObject(player, boxFill)
-            end
-        end
-        
-        -- Head Dot
-        if ESP.Settings.HeadDots then
-            local headDot = Create("Circle", {
-                Thickness = ESP.Properties.HeadDot.Thickness,
-                Color = ESP.Properties.HeadDot.Color,
-                Transparency = ESP.Properties.HeadDot.Transparency,
-                NumSides = ESP.Properties.HeadDot.NumSides,
-                Filled = ESP.Properties.HeadDot.Filled,
-                Visible = false
-            })
-            
-            if ESP.Properties.HeadDot.Outline then
-                local headDotOutline = Create("Circle", {
-                    Thickness = ESP.Properties.HeadDot.Thickness + 1,
-                    Color = ESP.Properties.HeadDot.OutlineColor,
-                    Transparency = ESP.Properties.HeadDot.Transparency,
-                    NumSides = ESP.Properties.HeadDot.NumSides,
-                    Filled = false,
-                    Visible = false
-                })
-                
-                AddObject(player, headDotOutline)
-            end
-            
-            AddObject(player, headDot)
-        end
-        
-        -- Health Bar
-        if ESP.Settings.HealthBars then
-            local healthBar = {}
-            
-            for i = 1, 2 do
-                healthBar[i] = Create("Line", {
-                    Thickness = ESP.Properties.HealthBar.Thickness,
-                    Color = ESP.Properties.HealthBar.Color,
-                    Transparency = ESP.Properties.HealthBar.Transparency,
-                    Visible = false
-                })
-                
-                AddObject(player, healthBar[i])
-            end
-            
-            if ESP.Properties.HealthBar.Outline then
-                local healthBarOutline = {}
-                
-                for i = 1, 4 do
-                    healthBarOutline[i] = Create("Line", {
-                        Thickness = ESP.Properties.HealthBar.Thickness + 1,
-                        Color = ESP.Properties.HealthBar.OutlineColor,
-                        Transparency = ESP.Properties.HealthBar.Transparency,
-                        Visible = false
-                    })
-                    
-                    AddObject(player, healthBarOutline[i])
+    local connection
+    connection = RunService[ESP.DeveloperSettings.UpdateMode]:Connect(function()
+        if ESP.Settings.Enabled then
+            UpdatePlayerESP(player)
+        elseif drawings[player] then
+            for _, drawing in pairs(drawings[player]) do
+                if typeof(drawing) == "table" then
+                    for _, subDrawing in pairs(drawing) do
+                        subDrawing.Visible = false
+                    end
+                else
+                    drawing.Visible = false
                 end
             end
         end
-        
-        -- Chams
-        if ESP.Settings.Chams then
-            -- Cham implementation would go here
-        end
-    end
-    
-    -- Update ESP objects
-    local text = Objects[player][1]
-    local index = 2
-    
-    if ESP.Settings.Tracers then
-        local tracer = Objects[player][index]
-        index = index + 1
-        
-        if ESP.Settings.RainbowColor then
-            UpdateRainbowColor(tracer)
-        else
-            UpdateTeamColor(player, tracer)
-        end
-        
-        tracer.Thickness = ESP.Properties.Tracer.Thickness
-        tracer.Transparency = ESP.Properties.Tracer.Transparency
-        tracer.Visible = ESP.Settings.Enabled and ESP.Settings.Tracers
-    end
-    
-    if ESP.Settings.Boxes then
-        local box = {Objects[player][index], Objects[player][index + 1], Objects[player][index + 2], Objects[player][index + 3]}
-        index = index + 4
-        
-        if ESP.Settings.BoxFill then
-            local boxFill = Objects[player][index]
-            index = index + 1
-            
-            if ESP.Settings.RainbowColor then
-                UpdateRainbowColor(boxFill)
-            else
-                UpdateTeamColor(player, boxFill)
-            end
-            
-            boxFill.Transparency = ESP.Properties.Box.FilledTransparency
-            boxFill.Visible = ESP.Settings.Enabled and ESP.Settings.Boxes and ESP.Settings.BoxFill
-        end
-        
-        for i, line in ipairs(box) do
-            if ESP.Settings.RainbowColor then
-                UpdateRainbowColor(line)
-            else
-                UpdateTeamColor(player, line)
-            end
-            
-            line.Thickness = ESP.Properties.Box.Thickness
-            line.Transparency = ESP.Properties.Box.Transparency
-            line.Visible = ESP.Settings.Enabled and ESP.Settings.Boxes
-        end
-    end
-    
-    if ESP.Settings.HeadDots then
-        local headDotOutline, headDot
-        
-        if ESP.Properties.HeadDot.Outline then
-            headDotOutline = Objects[player][index]
-            headDot = Objects[player][index + 1]
-            index = index + 2
-        else
-            headDot = Objects[player][index]
-            index = index + 1
-        end
-        
-        if ESP.Settings.RainbowColor then
-            UpdateRainbowColor(headDot)
-            if headDotOutline then
-                UpdateRainbowColor(headDotOutline)
-            end
-        else
-            UpdateTeamColor(player, headDot)
-            if headDotOutline then
-                UpdateTeamColor(player, headDotOutline)
-            end
-        end
-        
-        headDot.Thickness = ESP.Properties.HeadDot.Thickness
-        headDot.Transparency = ESP.Properties.HeadDot.Transparency
-        headDot.NumSides = ESP.Properties.HeadDot.NumSides
-        headDot.Visible = ESP.Settings.Enabled and ESP.Settings.HeadDots
-        
-        if headDotOutline then
-            headDotOutline.Thickness = ESP.Properties.HeadDot.Thickness + 1
-            headDotOutline.Transparency = ESP.Properties.HeadDot.Transparency
-            headDotOutline.NumSides = ESP.Properties.HeadDot.NumSides
-            headDotOutline.Visible = ESP.Settings.Enabled and ESP.Settings.HeadDots and ESP.Properties.HeadDot.Outline
-        end
-    end
-    
-    if ESP.Settings.HealthBars then
-        -- Health bar update logic would go here
-    end
-    
-    -- Update text
-    local distance = (rootPart.Position - Camera.CFrame.Position).Magnitude
-    local displayText = ""
-    
-    if ESP.Settings.DisplayName then
-        displayText = player.Name
-    end
-    
-    if ESP.Settings.Distance then
-        if displayText ~= "" then
-            displayText = displayText .. " "
-        end
-        
-        local distanceText = tostring(math.floor(distance))
-        
-        if ESP.Settings.DistanceAbbreviation then
-            distanceText = distanceText .. "s"
-        end
-        
-        displayText = displayText .. "[" .. distanceText .. "]"
-    end
-    
-    if ESP.Settings.Health then
-        if displayText ~= "" then
-            displayText = displayText .. " "
-        end
-        
-        local healthText
-        
-        if ESP.Settings.HealthPercentage then
-            healthText = tostring(math.floor((humanoid.Health / humanoid.MaxHealth) * 100)) .. "%"
-        else
-            healthText = tostring(math.floor(humanoid.Health)) .. "/" .. tostring(math.floor(humanoid.MaxHealth))
-        end
-        
-        displayText = displayText .. "(" .. healthText .. ")"
-    end
-    
-    text.Text = displayText
-    text.Size = ESP.Properties.ESP.Size
-    text.Outline = ESP.Properties.ESP.Outline
-    text.OutlineColor = ESP.Properties.ESP.OutlineColor
-    text.Center = ESP.Properties.ESP.Center
-    text.Offset = ESP.Properties.ESP.Offset
-    
-    if ESP.Settings.RainbowColor then
-        UpdateRainbowColor(text)
-    else
-        UpdateTeamColor(player, text)
-    end
-    
-    text.Transparency = ESP.Properties.ESP.Transparency
-    text.Visible = ESP.Settings.Enabled and (not ESP.Settings.LimitDistance or distance <= ESP.Settings.MaxDistance)
-end
-
-local function UpdateAllESP()
-    for player, objects in pairs(Objects) do
-        if player ~= LocalPlayer and player.Character then
-            UpdateESP(player, player.Character)
-        end
-    end
-end
-
-local function CharacterAdded(player, character)
-    character:WaitForChild("HumanoidRootPart")
-    UpdateESP(player, character)
-end
-
-local function PlayerAdded(player)
-    Connections[player] = player.CharacterAdded:Connect(function(character)
-        CharacterAdded(player, character)
     end)
-    
-    if player.Character then
-        CharacterAdded(player, player.Character)
-    end
-end
 
-local function PlayerRemoving(player)
-    if Connections[player] then
-        Connections[player]:Disconnect()
-        Connections[player] = nil
-    end
-    
-    if Objects[player] then
-        for _, object in ipairs(Objects[player]) do
-            object:Remove()
+    player.CharacterRemoving:Connect(function()
+        if drawings[player] then
+            for _, drawing in pairs(drawings[player]) do
+                if typeof(drawing) == "table" then
+                    for _, subDrawing in pairs(drawing) do
+                        subDrawing:Remove()
+                    end
+                else
+                    drawing:Remove()
+                end
+            end
+            drawings[player] = nil
         end
-        
-        Objects[player] = nil
-    end
+    end)
 end
 
--- Public functions
+-- INITIALIZATION
 function ESP:Load()
     for _, player in ipairs(Players:GetPlayers()) do
-        if player ~= LocalPlayer then
-            PlayerAdded(player)
-        end
+        PlayerAdded(player)
     end
-    
     Players.PlayerAdded:Connect(PlayerAdded)
-    Players.PlayerRemoving:Connect(PlayerRemoving)
-    
-    RunService[ESP.DeveloperSettings.UpdateMode]:Connect(UpdateAllESP)
 end
 
-function ESP:Restart()
-    for player in pairs(Objects) do
-        PlayerRemoving(player)
-    end
-    
-    self:Load()
+function ESP:Toggle(state)
+    self.Settings.Enabled = state
+end
+
+function ESP:SetRainbow(state, speed)
+    self.Settings.RainbowColor = state
+    if speed then self.DeveloperSettings.RainbowSpeed = speed end
 end
 
 function ESP:Exit()
-    for player in pairs(Objects) do
-        PlayerRemoving(player)
+    for player, drawingTable in pairs(drawings) do
+        for _, drawing in pairs(drawingTable) do
+            if typeof(drawing) == "table" then
+                for _, subDrawing in pairs(drawing) do
+                    subDrawing:Remove()
+                end
+            else
+                drawing:Remove()
+            end
+        end
     end
-    
-    for _, connection in pairs(Connections) do
-        connection:Disconnect()
-    end
-    
-    table.clear(Objects)
-    table.clear(Connections)
+    drawings = {}
 end
+
+-- Start ESP
+ESP:Load()
 
 return ESP
